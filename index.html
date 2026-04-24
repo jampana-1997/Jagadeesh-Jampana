@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HR Data from Drive</title>
+    <style>
+        body { font-family: Arial; }
+        table { border-collapse: collapse; width: 90%; margin: auto; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        th { background: #28a745; color: white; }
+        h2 { text-align: center; }
+    </style>
+</head>
+<body>
+
+<h2>HR Data (From Google Drive)</h2>
+
+<table id="dataTable">
+    <tr>
+        <th>Sl.No</th>
+        <th>Company</th>
+        <th>Name</th>
+        <th>Designation</th>
+        <th>Mobile</th>
+        <th>Email</th>
+    </tr>
+</table>
+
+<script>
+const sheetURL = "https://docs.google.com/spreadsheets/d/1wgfc0hnKgD8icjXrDQWqm_2Zlt1Cj27l/edit?usp=sharing&ouid=111051219663630236127&rtpof=true&sd=true
+";
+
+fetch(sheetURL)
+.then(res => res.text())
+.then(data => {
+    let rows = data.split("\n").slice(1);
+    let table = document.getElementById("dataTable");
+
+    rows.forEach(r => {
+        let cols = r.split(",");
+        if(cols.length > 1){
+            let row = `<tr>
+                <td>${cols[0]}</td>
+                <td>${cols[1]}</td>
+                <td>${cols[2]}</td>
+                <td>${cols[3]}</td>
+                <td>${cols[4]}</td>
+                <td>${cols[5]}</td>
+            </tr>`;
+            table.innerHTML += row;
+        }
+    });
+});
+</script>
+
+</body>
+</html>
