@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Placement Data</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Placement Records</h2>
+
+<input type="text" id="search" placeholder="Search anything...">
+
+<table id="table">
+    <thead>
+        <tr>
+            <th>S.No</th>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Branch</th>
+            <th>Company</th>
+            <th>Role</th>
+            <th>Salary</th>
+        </tr>
+    </thead>
+    <tbody id="tbody">
+    </tbody>
+</table>
+
+<script>
+const data = [
+    {
+        sno: 1,
+        roll: "123",
+        name: "Ravi",
+        branch: "CSE",
+        company: "TCS",
+        role: "Developer",
+        salary: "3.5 LPA"
+    },
+    {
+        sno: 2,
+        roll: "124",
+        name: "Sita",
+        branch: "ECE",
+        company: "Infosys",
+        role: "Engineer",
+        salary: "4 LPA"
+    }
+];
+
+// Load table
+function loadTable(filteredData) {
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+
+    filteredData.forEach(row => {
+        const tr = `<tr>
+            <td>${row.sno}</td>
+            <td>${row.roll}</td>
+            <td>${row.name}</td>
+            <td>${row.branch}</td>
+            <td>${row.company}</td>
+            <td>${row.role}</td>
+            <td>${row.salary}</td>
+        </tr>`;
+        tbody.innerHTML += tr;
+    });
+}
+
+// Search function
+document.getElementById("search").addEventListener("keyup", function() {
+    const value = this.value.toLowerCase();
+
+    const filtered = data.filter(item =>
+        Object.values(item).some(val =>
+            val.toString().toLowerCase().includes(value)
+        )
+    );
+
+    loadTable(filtered);
+});
+
+// Initial load
+loadTable(data);
+</script>
+
+</body>
+</html>
