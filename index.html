@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MGIT Placement Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    h1, h3 {
+      text-align: center;
+      margin: 5px;
+    }
+
+    .summary {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    th {
+      background: #333;
+      color: white;
+    }
+
+    input {
+      width: 95%;
+      padding: 6px;
+      border: none;
+      outline: none;
+      border-radius: 4px;
+    }
+
+    tr:hover {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>MGIT Placement Records</h1>
+<h3>Academic Year 2025 - 2026</h3>
+
+<div class="summary" id="summary">
+  Total Offers : 0 | Total Placed Students : 0
+</div>
+
+<table>
+  <thead>
+    <tr id="header"></tr>
+  </thead>
+  <tbody id="body"></tbody>
+</table>
+
+<script>
+
+const sheetID = "17TzUvarzX60g8vzKf4sE27Gnl6KtxuGkhNA0NLvVtbs";
+const url = `https://opensheet.elk.sh/${sheetID}/1`;
+
+let data = [];
+
+// LOAD DATA
+fetch(url)
+  .then(res => res.json())
+  .then(res => {
+    data = res;
+    buildTable(res);
+    showData(res);
+    updateSummary(res);
+  });
+
+/* HEADER BUILD */
+function buildTable(data) {
+  const header = document.getElementById("header");
+  header.innerHTML = "";
+
+  Object.keys(data[0]).forEach((key, index) => {
+
+    if (index === 0) {
+      header.innerHTML += `
+        <th>
+          <input type="text" placeholder="Search..." 
+          onkeyup="applySearch(this.value)">
+        </th>
+      `;
+    } else {
+      header.innerHTML += `<th>${key}</th>`;
+    }
+
+  });
+}
+
+/* SHOW DATA */
+function showData(data) {
+  const body = document.getElementById("body");
+  body.innerHTML = "";
+
+  data.forEach(row => {
+    let tr = "<tr>";
+    Object.values(row).forEach(val => {
+      tr += `<td>${val}</td>`;
+    });
+    tr += "</tr>";
+    body.innerHTML += tr;
+  });
+}
+
+/* SEARCH ALL COLUMNS */
+function applySearch(value) {
+  value = value.toLowerCase();
+
+  const filtered = data.filter(row => {
+    return Object.values(row).some(val =>
+      String(val).toLowerCase().includes(value)
+    );
+  });
+
+  showData(filtered);
+}
+
+/* SUMMARY */
+function updateSummary(data) {
+  let offers = data.length * 2; // fallback logic (you can customize)
+  let placed = data.length;
+
+  document.getElementById("summary").innerText =
+    `Total Offers : ${offers} | Total Placed Students : ${placed}`;
+}
+
+</script>
+
+</body>
+</html>
