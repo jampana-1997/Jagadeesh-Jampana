@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Placements Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+
+    select, input {
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .count {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    th {
+      background: #333;
+      color: white;
+    }
+
+    tr:hover {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Placements Dashboard</h1>
+
+<div class="filters" id="filters"></div>
+
+<div class="count" id="count">Loading...</div>
+
+<table>
+  <thead>
+    <tr id="header"></tr>
+  </thead>
+  <tbody id="body"></tbody>
+</table>
+
+<script>
+
+const sheetID = "17TzUvarzX60g8vzKf4sE27Gnl6KtxuGkhNA0NLvVtbs";
+const url = `https://opensheet.elk.sh/${sheetID}/1`;
+
+let data = [];
+let filters = {};
+
+// LOAD DATA
+fetch(url)
+  .then(res => res.json())
+  .then(res => {
+    data = res;
+    buildTable(res);
+    buildFilters(res);
+    applyFilters();
+  });
+
+/* BUILD TABLE HEADER */
+function buildTable(data) {
+  const header = document.getElementById("header");
+  header.innerHTML = "";
+
+  if (data.length === 0) return;
+
+  Object.keys(data[0]).forEach(k => {
+    header.innerHTML += `<th>${k}</th>`;
+  });
+}
+
+/* SHOW TABLE DATA */
+function showData(data) {
+  const body = document.getElementById("body");
+  body.innerHTML = "";
+
+  data.forEach(row => {
+    let tr = "<tr>";
+    Object.values(row).forEach(val => {
+      tr += `<td>${val}</td>`;
+    });
+    tr += "</tr>";
+    body.innerHTML += tr;
+  });
+
+  document.getElementById("count").innerText =
+    `Total Records: ${data.length}`;
+}
+
+/* CREATE FILTERS */
+function buildFilters(data) {
+  const filterDiv = document.getElementById("filters");
+  const columns = Object.keys(data[0]);
+
+  columns.forEach(col => {
+
+    let uniqueValues = [...new Set(data.map(item => item[col]))];
+
+    let select = document.createElement("select");
+    select.innerHTML = `<option value="">All ${col}</option>`;
+
+    uniqueValues.forEach(val => {
+      select.innerHTML += `<option value="${val}">${val}</option>`;
+    });
+
+    select.onchange = (e) => {
+      filters[col] = e.target.value;
+      applyFilters();
+    };
+
+    filterDiv.appendChild(select);
+  });
+}
+
+/* FILTER LOGIC */
+function applyFilters() {
+
+  let filtered = data.filter(row => {
+
+    return Object.keys(filters).every(col => {
+      return !filters[col] ||
+        String(row[col]).toLowerCase() === filters[col].toLowerCase();
+    });
+
+  });
+
+  showData(filtered);
+}
+
+</script>
+
+</body>
+</html>
