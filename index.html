@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Placement Search</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { padding: 10px; width: 300px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+  </style>
+</head>
+<body>
+
+<h2>Placement Data Search</h2>
+
+<input type="text" id="search" placeholder="Search anything..." onkeyup="searchData()">
+
+<table>
+  <thead>
+    <tr id="headerRow"></tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+
+<script>
+const sheetID = "Yhttps://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/edit?usp=sharing";
+const url = `https://opensheet.elk.sh/${sheetID}/Sheet1`;
+
+let fullData = [];
+
+fetch(url)
+  .then(res => res.json())
+  .then(data => {
+    fullData = data;
+    createTable(data);
+  });
+
+function createTable(data) {
+  const headerRow = document.getElementById("headerRow");
+  headerRow.innerHTML = "";
+
+  Object.keys(data[0]).forEach(key => {
+    headerRow.innerHTML += `<th>${key}</th>`;
+  });
+
+  displayData(data);
+}
+
+function displayData(data) {
+  const tableBody = document.getElementById("tableBody");
+  tableBody.innerHTML = "";
+
+  data.forEach(row => {
+    let tr = "<tr>";
+    Object.values(row).forEach(val => {
+      tr += `<td>${val}</td>`;
+    });
+    tr += "</tr>";
+    tableBody.innerHTML += tr;
+  });
+}
+
+function searchData() {
+  const value = document.getElementById("search").value.toLowerCase();
+
+  const filtered = fullData.filter(row =>
+    Object.values(row).some(val =>
+      val.toLowerCase().includes(value)
+    )
+  );
+
+  displayData(filtered);
+}
+</script>
+
+</body>
+</html>
