@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Placements Filter</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    /* FILTER BAR */
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    input, select {
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    /* COUNT */
+    .count {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    th {
+      background: #333;
+      color: white;
+    }
+
+    tr:hover {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Placements Dashboard</h1>
+
+<!-- ✅ FILTERS -->
+<div class="filters">
+  <select id="branch">
+    <option value="">All Branch</option>
+    <option value="CSE">CSE</option>
+    <option value="ECE">ECE</option>
+    <option value="MECH">MECH</option>
+  </select>
+
+  <select id="company">
+    <option value="">All Company</option>
+    <option value="TCS">TCS</option>
+    <option value="Infosys">Infosys</option>
+    <option value="Wipro">Wipro</option>
+  </select>
+
+  <select id="package">
+    <option value="">All Package</option>
+    <option value="6">6 LPA</option>
+    <option value="5">5 LPA</option>
+    <option value="4">4 LPA</option>
+  </select>
+
+  <input type="text" id="search" placeholder="Search Name / Roll No">
+</div>
+
+<div class="count" id="count">Loading...</div>
+
+<table>
+  <thead>
+    <tr id="header"></tr>
+  </thead>
+  <tbody id="body"></tbody>
+</table>
+
+<script>
+
+const sheetID = "1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM";
+const url = `https://opensheet.elk.sh/${sheetID}/1`;
+
+let data = [];
+
+fetch(url)
+  .then(res => res.json())
+  .then(res => {
+    data = res;
+    buildTable(data);
+    updateCount(data.length);
+  });
+
+function buildTable(data) {
+  const header = document.getElementById("header");
+  header.innerHTML = "";
+
+  if (data.length === 0) return;
+
+  Object.keys(data[0]).forEach(k => {
+    header.innerHTML += `<th>${k}</th>`;
+  });
+
+  showData(data);
+}
+
+function showData(data) {
+  const body = document.getElementById("body");
+  body.innerHTML = "";
+
+  data.forEach(row => {
+    let tr = "<tr>";
+    Object.values(row).forEach(val => {
+      tr += `<td>${val}</td>`;
+    });
+    tr += "</tr>";
+    body.innerHTML += tr;
+  });
+}
+
+function filterData() {
+  const branch = document.getElementById("branch").value.toLowerCase();
+  const company = document.getElementById("company").value.toLowerCase();
+  const pkg = document.getElementById("package").value.toLowerCase();
+  const search = document.getElementById("search").value.toLowerCase();
+
+  const filtered = data.filter(row => {
+
+    const matchBranch =
+      !branch || String(row.Branch || "").toLowerCase().includes(branch);
+
+    const matchCompany =
+      !company || String(row.Company || "").toLowerCase().includes(company);
+
+    const matchPackage =
+      !pkg || String(row.Package || "").toLowerCase().includes(pkg);
+
+    const matchSearch =
+      Object.values(row).some(v =>
+        String(v).toLowerCase().includes(search)
+      );
+
+    return matchBranch && matchCompany && matchPackage && matchSearch;
+  });
+
+  showData(filtered);
+  updateCount(filtered.length);
+}
+
+/* EVENTS */
+document.getElementById("branch").onchange = filterData;
+document.getElementById("company").onchange = filterData;
+document.getElementById("package").onchange = filterData;
+document.getElementById("search").onkeyup = filterData;
+
+/* COUNT */
+function updateCount(count) {
+  document.getElementById("count").innerText =
+    `Total Matching Records: ${count}`;
+}
+
+</script>
+
+</body>
+</html>
