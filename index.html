@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Placements</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    th {
+      background: #333;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Placements</h1>
+
+<input type="text" id="search" placeholder="Search anything (Name, Roll No, Company...)" onkeyup="filterData()">
+
+<table>
+  <thead>
+    <tr id="header"></tr>
+  </thead>
+  <tbody id="body"></tbody>
+</table>
+
+<script>
+const sheetID = "1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM";
+const url = `https://opensheet.elk.sh/${sheetID}/1`;
+
+let data = [];
+
+fetch(url)
+  .then(res => res.json())
+  .then(res => {
+    data = res;
+    buildTable(res);
+  });
+
+function buildTable(data) {
+  const header = document.getElementById("header");
+  header.innerHTML = "";
+
+  Object.keys(data[0]).forEach(k => {
+    header.innerHTML += `<th>${k}</th>`;
+  });
+
+  showData(data);
+}
+
+function showData(data) {
+  const body = document.getElementById("body");
+  body.innerHTML = "";
+
+  data.forEach(row => {
+    let tr = "<tr>";
+    Object.values(row).forEach(val => {
+      tr += `<td>${val}</td>`;
+    });
+    tr += "</tr>";
+    body.innerHTML += tr;
+  });
+}
+
+function filterData() {
+  const val = document.getElementById("search").value.toLowerCase();
+
+  const filtered = data.filter(row => {
+    return Object.values(row).some(v =>
+      String(v).toLowerCase().includes(val)
+    );
+  });
+
+  showData(filtered);
+}
+</script>
+
+</body>
+</html>
