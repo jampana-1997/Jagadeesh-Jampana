@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MGIT Placement Portal</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      background: #f4f6f9;
+    }
+
+    /* LOGIN PAGE */
+    .login-box {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #2c3e50;
+      color: white;
+    }
+
+    .login-card {
+      background: white;
+      color: black;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      width: 300px;
+    }
+
+    .login-card input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+
+    .login-card button {
+      padding: 10px 20px;
+      background: #3498db;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    /* DASHBOARD */
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      padding: 20px;
+      display: none;
+    }
+
+    .cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 200px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    input.search {
+      padding: 10px;
+      width: 300px;
+      margin: 20px auto;
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #3498db;
+      color: white;
+    }
+
+    .chartBox {
+      width: 300px;
+      margin: 30px auto;
+    }
+
+    .logout {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      background: red;
+      color: white;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div class="login-box" id="loginPage">
+  <div class="login-card">
+    <h2>MGIT LOGIN</h2>
+    <input type="text" id="user" placeholder="Username">
+    <input type="password" id="pass" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="msg" style="color:red;"></p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="container" id="dashboard">
+
+  <div class="logout" onclick="logout()">Logout</div>
+
+  <header>
+    <h1>MAHATMA GANDHI INSTITUTE OF TECHNOLOGY</h1>
+    <h3>PLACEMENTS DASHBOARD</h3>
+  </header>
+
+  <div class="cards">
+    <div class="card">
+      <h2 id="students">0</h2>
+      <p>Total Students</p>
+    </div>
+
+    <div class="card">
+      <h2 id="offers">0</h2>
+      <p>Offer Letters</p>
+    </div>
+
+    <div class="card">
+      <h2 id="notPlaced">0</h2>
+      <p>Not Placed</p>
+    </div>
+  </div>
+
+  <input class="search" type="text" id="search" placeholder="Search..." onkeyup="filterTable()">
+
+  <div class="chartBox">
+    <canvas id="myChart"></canvas>
+  </div>
+
+  <table id="table">
+    <thead>
+      <tr id="headerRow"></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+</div>
+
+<script>
+const sheetURL = "https://docs.google.com/spreadsheets/d/1LsZB1nwhbNCnULTKI3UIsYX8TdrKAA0pDIhsYCOHr0E/gviz/tq?tqx=out:csv";
+
+let allData = [];
+let chart;
+
+// 🔐 LOGIN SYSTEM (simple demo)
+function login() {
+  let u = document.getElementById("user").value;
+  let p = document.getElementById("pass").value;
+
+  if (u === "mgit" && p === "1234") {
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    loadData();
+  } else {
+    document.getElementById("msg").innerText = "Invalid Login!";
+  }
+}
+
+function logout() {
+  location.reload();
+}
+
+// 📊 LOAD DATA
+function loadData() {
+  fetch(sheetURL)
+    .then(res => res.text())
+    .then(csv => {
+      const result = Papa.parse(csv, { header: true });
+      allData = result.data;
+
+      loadTable(allData);
+      updateStats(allData);
+      drawChart(allData);
+    });
+}
+
+function loadTable(data) {
+  const headerRow = document.getElementById("headerRow");
+  const tbody = document.querySelector("#table tbody");
+
+  tbody.innerHTML = "";
+  headerRow.innerHTML = "";
+
+  if (!data.length) return;
+
+  Object.keys(data[0]).forEach(key => {
+    let th = document.createElement("th");
+    th.innerText = key;
+    headerRow.appendChild(th);
+  });
+
+  data.forEach(row => {
+    let tr = document.createElement("tr");
+
+    Object.values(row).forEach(val => {
+      let td = document.createElement("td");
+      td.innerText = val;
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+function updateStats(data) {
+  document.getElementById("students").innerText = data.length;
+
+  let offers = 0;
+  let notPlaced = 0;
+
+  data.forEach(r => {
+    let v = Object.values(r).join(" ").toLowerCase();
+    if (v.includes("offer") || v.includes("yes")) offers++;
+    else notPlaced++;
+  });
+
+  document.getElementById("offers").innerText = offers;
+  document.getElementById("notPlaced").innerText = notPlaced;
+}
+
+function drawChart(data) {
+  let offers = 0;
+  let notPlaced = 0;
+
+  data.forEach(r => {
+    let v = Object.values(r).join(" ").toLowerCase();
+    if (v.includes("offer") || v.includes("yes")) offers++;
+    else notPlaced++;
+  });
+
+  new Chart(document.getElementById("myChart"), {
+    type: 'pie',
+    data: {
+      labels: ['Placed', 'Not Placed'],
+      datasets: [{
+        data: [offers, notPlaced]
+      }]
+    }
+  });
+}
+
+function filterTable() {
+  let val = document.getElementById("search").value.toLowerCase();
+
+  let filtered = allData.filter(r =>
+    Object.values(r).some(v =>
+      String(v).toLowerCase().includes(val)
+    )
+  );
+
+  loadTable(filtered);
+}
+</script>
+
+</body>
+</html>
