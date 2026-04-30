@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MGIT Placement Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {margin:0;font-family:sans-serif;background:#f1f5f9;}
+header {
+ position:sticky;top:0;
+ background:#001f3f;color:white;
+ padding:12px;text-align:center;
+ font-size:18px;
+}
+
+.container {padding:10px;}
+
+input, select, button {
+ width:100%;margin:5px 0;
+ padding:8px;border-radius:6px;
+ border:1px solid #ccc;
+}
+
+.cards {
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:8px;
+}
+
+.card {
+ background:white;padding:10px;
+ border-radius:10px;
+ text-align:center;
+}
+
+table {
+ width:100%;
+ border-collapse:collapse;
+ background:white;
+ margin-top:10px;
+}
+
+th, td {
+ border:1px solid #ddd;
+ padding:6px;font-size:12px;
+}
+
+th {background:#007BFF;color:white;}
+
+canvas {
+ margin-top:10px;
+ background:white;
+ border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+🎓 Mahatma Gandhi Institute of Technology  
+<br>Placement Dashboard
+</header>
+
+<div class="container">
+
+<input id="search" placeholder="Search...">
+<div id="filters"></div>
+
+<button onclick="window.print()">Print</button>
+
+<div class="cards">
+<div class="card">Total<br><b id="total"></b></div>
+<div class="card">Placed<br><b id="placed"></b></div>
+<div class="card">Not Placed<br><b id="notPlaced"></b></div>
+<div class="card">%<br><b id="percent"></b></div>
+</div>
+
+<div id="branchStats"></div>
+
+<table id="table"></table>
+
+<canvas id="chart"></canvas>
+
+</div>
+
+<script>
+const URL="https://docs.google.com/spreadsheets/d/1LsZB1nwhbNCnULTKI3UIsYX8TdrKAA0pDIhsYCOHr0E/gviz/tq?tqx=out:csv";
+
+let data=[], headers=[], chart;
+
+async function load(){
+ let res=await fetch(URL);
+ let txt=await res.text();
+ let rows=txt.split("\n").map(r=>r.split(","));
+ headers=rows[0];
+ data=rows.slice(1);
+
+ createFilters();
+ render();
+}
+
+function createFilters(){
+ let div=document.getElementById("filters");
+ headers.forEach((h,i)=>{
+   let sel=document.createElement("select");
+
+   let unique=[...new Set(data.map(r=>r[i]))];
+
+   sel.innerHTML=`<option value="">${h}</option>`;
+   unique.forEach(v=>{
+     if(v) sel.innerHTML+=`<option>${v}</option>`;
+   });
+
+   sel.dataset.col=i;
+   sel.onchange=render;
+   div.appendChild(sel);
+ });
+}
+
+function render(){
+ let search=document.getElementById("search").value.toLowerCase();
+ let selects=[...document.querySelectorAll("select")];
+
+ let filtered=data.filter(r=>{
+   let s=r.join(" ").toLowerCase().includes(search);
+   let f=selects.every(sel=>{
+     return !sel.value || r[sel.dataset.col]==sel.value;
+   });
+   return s && f;
+ });
+
+ let html="<tr>";
+ headers.forEach(h=>html+=`<th>${h}</th>`);
+ html+="</tr>";
+
+ let total=0, placed=0, branch={};
+
+ filtered.forEach(r=>{
+   html+="<tr>";
+   r.forEach(c=>html+=`<td>${c}</td>`);
+   html+="</tr>";
+
+   total++;
+   if(r.join("").toLowerCase().includes("placed")) placed++;
+
+   headers.forEach((h,i)=>{
+     if(h.toLowerCase().includes("branch")){
+       branch[r[i]]=(branch[r[i]]||0)+1;
+     }
+   });
+ });
+
+ document.getElementById("table").innerHTML=html;
+
+ let notPlaced=total-placed;
+ let percent=((placed/total)*100).toFixed(1);
+
+ document.getElementById("total").innerText=total;
+ document.getElementById("placed").innerText=placed;
+ document.getElementById("notPlaced").innerText=notPlaced;
+ document.getElementById("percent").innerText=percent+"%";
+
+ let stats="";
+ let labels=[], values=[];
+ for(let b in branch){
+   stats+=`<p>${b}: ${branch[b]}</p>`;
+   labels.push(b);
+   values.push(branch[b]);
+ }
+ document.getElementById("branchStats").innerHTML=stats;
+
+ drawChart(labels, values);
+}
+
+function drawChart(labels, values){
+ if(chart) chart.destroy();
+ chart=new Chart(document.getElementById("chart"),{
+   type:'bar',
+   data:{labels:labels,datasets:[{data:values,backgroundColor:"blue"}]}
+ });
+}
+
+document.getElementById("search").addEventListener("input",render);
+
+load();
+</script>
+
+</body>
+</html>
