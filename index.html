@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MGIT Placement Portal</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      background: #f4f6f9;
+    }
+
+    /* LOGIN */
+    .login {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #2c3e50;
+      color: white;
+    }
+
+    .login-box {
+      background: white;
+      color: black;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      width: 300px;
+    }
+
+    input, select {
+      padding: 10px;
+      margin: 8px;
+      width: 90%;
+    }
+
+    button {
+      padding: 10px;
+      width: 95%;
+      background: #3498db;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    /* DASHBOARD */
+    header {
+      background: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .container {
+      padding: 20px;
+      display: none;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="loginPage">
+  <div class="login-box">
+    <h2>MGIT LOGIN</h2>
+    <input id="user" placeholder="Username">
+    <input id="pass" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="msg" style="color:red;"></p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="container" id="dashboard">
+
+  <header>
+    <h1>MAHATMA GANDHI INSTITUTE OF TECHNOLOGY</h1>
+    <h3>PLACEMENTS DASHBOARD</h3>
+  </header>
+
+  <!-- FILTERS (AUTO GENERATED) -->
+  <div class="filters" id="filters"></div>
+
+  <!-- TABLE -->
+  <table id="table">
+    <thead>
+      <tr id="headerRow"></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+</div>
+
+<script>
+
+const sheetURL = "https://docs.google.com/spreadsheets/d/1LsZB1nwhbNCnULTKI3UIsYX8TdrKAA0pDIhsYCOHr0E/gviz/tq?tqx=out:csv";
+
+let allData = [];
+let filteredData = [];
+
+// LOGIN
+function login() {
+  let u = document.getElementById("user").value;
+  let p = document.getElementById("pass").value;
+
+  if (u === "mgit" && p === "1234") {
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    loadData();
+  } else {
+    document.getElementById("msg").innerText = "Invalid Login!";
+  }
+}
+
+// LOAD DATA
+function loadData() {
+  fetch(sheetURL)
+    .then(res => res.text())
+    .then(csv => {
+      const result = Papa.parse(csv, { header: true });
+      allData = result.data;
+      filteredData = allData;
+
+      createFilters(allData);
+      renderTable(allData);
+    });
+}
+
+// CREATE FILTERS FOR EVERY COLUMN
+function createFilters(data) {
+  const filterBox = document.getElementById("filters");
+  filterBox.innerHTML = "";
+
+  let keys = Object.keys(data[0]);
+
+  keys.forEach(key => {
+    let select = document.createElement("select");
+    select.onchange = applyFilters;
+
+    select.innerHTML = `<option value="">All ${key}</option>`;
+
+    let values = [...new Set(data.map(row => row[key]))];
+
+    values.forEach(val => {
+      let opt = document.createElement("option");
+      opt.value = val;
+      opt.innerText = val;
+      select.appendChild(opt);
+    });
+
+    select.setAttribute("data-key", key);
+    filterBox.appendChild(select);
+  });
+}
+
+// APPLY FILTERS
+function applyFilters() {
+  let selects = document.querySelectorAll("select");
+
+  filteredData = allData.filter(row => {
+    return Array.from(selects).every(sel => {
+      let key = sel.getAttribute("data-key");
+      let val = sel.value;
+
+      if (!val) return true;
+      return row[key] == val;
+    });
+  });
+
+  renderTable(filteredData);
+}
+
+// RENDER TABLE
+function renderTable(data) {
+  const headerRow = document.getElementById("headerRow");
+  const tbody = document.querySelector("#table tbody");
+
+  tbody.innerHTML = "";
+  headerRow.innerHTML = "";
+
+  if (!data.length) return;
+
+  Object.keys(data[0]).forEach(key => {
+    let th = document.createElement("th");
+    th.innerText = key;
+    headerRow.appendChild(th);
+  });
+
+  data.forEach(row => {
+    let tr = document.createElement("tr");
+
+    Object.values(row).forEach(val => {
+      let td = document.createElement("td");
+      td.innerText = val;
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+</script>
+
+</body>
+</html>
