@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>MGIT Placement Portal</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {font-family:Arial;margin:0;background:#eef2f7;}
+header {
+ background:#001f3f;color:white;
+ padding:15px;text-align:center;font-size:24px;
+}
+.container {padding:15px;}
+
+.top input, select, button {
+ margin:5px;padding:6px;border-radius:5px;
+}
+
+.cards {display:flex;gap:10px;margin:10px 0;}
+.card {
+ flex:1;background:white;padding:10px;
+ border-radius:8px;text-align:center;
+ box-shadow:0 0 5px rgba(0,0,0,0.1);
+}
+
+.layout {display:flex;gap:10px;}
+
+.sidebar {
+ width:220px;background:white;padding:10px;
+ border-radius:8px;
+}
+
+.main {flex:1;}
+
+table {
+ width:100%;border-collapse:collapse;background:white;
+}
+th, td {border:1px solid #ddd;padding:8px;}
+th {background:#007BFF;color:white;}
+
+canvas {
+ margin-top:15px;background:white;
+ border-radius:8px;padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+🎓 Mahatma Gandhi Institute of Technology  
+<br>Placement Analytics Portal
+</header>
+
+<div class="container">
+
+<div class="top">
+<input id="search" placeholder="🔍 Search...">
+<div id="filters"></div>
+<button onclick="printPage()">🖨 Print / PDF</button>
+</div>
+
+<div class="cards">
+<div class="card">Total<br><b id="total"></b></div>
+<div class="card">Placed<br><b id="placed"></b></div>
+<div class="card">Not Placed<br><b id="notPlaced"></b></div>
+<div class="card">Placement %<br><b id="percent"></b></div>
+</div>
+
+<div class="layout">
+
+<div class="sidebar">
+<h3>Branch Stats</h3>
+<div id="branchStats"></div>
+
+<h3>Top Companies</h3>
+<div id="companyStats"></div>
+</div>
+
+<div class="main">
+
+<table id="table"></table>
+
+<canvas id="branchChart"></canvas>
+<canvas id="companyChart"></canvas>
+
+</div>
+</div>
+</div>
+
+<script>
+const URL="https://docs.google.com/spreadsheets/d/1LsZB1nwhbNCnULTKI3UIsYX8TdrKAA0pDIhsYCOHr0E/gviz/tq?tqx=out:csv";
+
+let data=[], headers=[];
+let branchChart, companyChart;
+
+async function load(){
+ let res=await fetch(URL);
+ let txt=await res.text();
+ let rows=txt.split("\n").map(r=>r.split(","));
+ headers=rows[0];
+ data=rows.slice(1);
+
+ createFilters();
+ render();
+}
+
+function createFilters(){
+ let div=document.getElementById("filters");
+ headers.forEach((h,i)=>{
+   let sel1=document.createElement("select");
+   let sel2=document.createElement("select");
+
+   let unique=[...new Set(data.map(r=>r[i]))];
+
+   sel1.innerHTML=`<option value="">${h}</option>`;
+   sel2.innerHTML=`<option value="">${h}</option>`;
+
+   unique.forEach(v=>{
+     if(v){
+       sel1.innerHTML+=`<option>${v}</option>`;
+       sel2.innerHTML+=`<option>${v}</option>`;
+     }
+   });
+
+   sel1.dataset.col=i;
+   sel2.dataset.col=i;
+
+   sel1.onchange=render;
+   sel2.onchange=render;
+
+   div.appendChild(sel1);
+   div.appendChild(sel2);
+ });
+}
+
+function render(){
+
+ let search=document.getElementById("search").value.toLowerCase();
+ let selects=[...document.querySelectorAll("select")];
+
+ let filtered=data.filter(r=>{
+   let s=r.join(" ").toLowerCase().includes(search);
+
+   let f=selects.every(sel=>{
+     return !sel.value || r[sel.dataset.col]==sel.value;
+   });
+
+   return s && f;
+ });
+
+ let html="<tr>";
+ headers.forEach(h=>html+=`<th>${h}</th>`);
+ html+="</tr>";
+
+ let total=0, placed=0;
+ let branch={}, company={};
+
+ filtered.forEach(r=>{
+   html+="<tr>";
+   r.forEach(c=>html+=`<td>${c}</td>`);
+   html+="</tr>";
+
+   total++;
+
+   if(r.join("").toLowerCase().includes("placed")) placed++;
+
+   headers.forEach((h,i)=>{
+     if(h.toLowerCase().includes("branch")){
+       branch[r[i]]=(branch[r[i]]||0)+1;
+     }
+     if(h.toLowerCase().includes("company")){
+       company[r[i]]=(company[r[i]]||0)+1;
+     }
+   });
+ });
+
+ document.getElementById("table").innerHTML=html;
+
+ let notPlaced=total-placed;
+ let percent=((placed/total)*100).toFixed(1);
+
+ document.getElementById("total").innerText=total;
+ document.getElementById("placed").innerText=placed;
+ document.getElementById("notPlaced").innerText=notPlaced;
+ document.getElementById("percent").innerText=percent+"%";
+
+ showStats(branch,"branchStats");
+ showStats(company,"companyStats");
+
+ drawChart("branchChart",branch);
+ drawChart("companyChart",company);
+}
+
+function showStats(obj,id){
+ let html="";
+ for(let k in obj){
+   html+=`<p>${k}: ${obj[k]}</p>`;
+ }
+ document.getElementById(id).innerHTML=html;
+}
+
+function drawChart(id,dataObj){
+ let labels=Object.keys(dataObj);
+ let values=Object.values(dataObj);
+
+ let ctx=document.getElementById(id);
+
+ if(id==="branchChart" && branchChart) branchChart.destroy();
+ if(id==="companyChart" && companyChart) companyChart.destroy();
+
+ let chart=new Chart(ctx,{
+   type:'bar',
+   data:{labels:labels,datasets:[{data:values,backgroundColor:'green'}]}
+ });
+
+ if(id==="branchChart") branchChart=chart;
+ if(id==="companyChart") companyChart=chart;
+}
+
+document.getElementById("search").addEventListener("input",render);
+
+function printPage(){
+ window.print();
+}
+
+load();
+
+// Auto refresh every 60 sec
+setInterval(load,60000);
+</script>
+
+</body>
+</html>
