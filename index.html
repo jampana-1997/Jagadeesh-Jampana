@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ultimate Student Dashboard</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background:#f9f9f9;}
+    h2 { color:#333; }
+    select, input, button {
+      margin:5px; padding:7px; border-radius:5px; border:1px solid #ccc;
+    }
+    table {
+      border-collapse: collapse; width: 100%; margin-top: 15px;
+      background:white;
+    }
+    th, td {
+      border: 1px solid #ddd; padding: 8px;
+    }
+    th {
+      background:#007BFF; color:white;
+    }
+    tr:hover { background:#f1f1f1; }
+    .box {
+      background:white;
+      padding:10px;
+      margin:10px 0;
+      border-radius:8px;
+      box-shadow:0 0 5px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+<h2>🎓 Placement Dashboard</h2>
+
+<input type="text" id="search" placeholder="🔍 Search anything...">
+
+<div id="filters"></div>
+
+<button onclick="printPage()">🖨 Print</button>
+
+<div class="box">
+  <h3>Total Students: <span id="total"></span></h3>
+  <h3>Placed Students: <span id="placed"></span></h3>
+</div>
+
+<div class="box" id="stats"></div>
+
+<table id="table"></table>
+
+<script>
+const sheetURL = "https://docs.google.com/spreadsheets/d/1LsZB1nwhbNCnULTKI3UIsYX8TdrKAA0pDIhsYCOHr0E/gviz/tq?tqx=out:csv";
+
+let data = [];
+let headers = [];
+
+async function loadData() {
+  let res = await fetch(sheetURL);
+  let text = await res.text();
+
+  let rows = text.split("\n").map(r => r.split(","));
+  headers = rows[0];
+  data = rows.slice(1);
+
+  createFilters();
+  render();
+}
+
+function createFilters() {
+  let div = document.getElementById("filters");
+  div.innerHTML = "";
+
+  headers.forEach((h,i) => {
+    let unique = [...new Set(data.map(r => r[i]))];
+
+    let sel = document.createElement("select");
+    sel.innerHTML = `<option value="">All ${h}</option>`;
+
+    unique.forEach(v => {
+      if(v) sel.innerHTML += `<option>${v}</option>`;
+    });
+
+    sel.dataset.col = i;
+    sel.onchange = render;
+
+    div.appendChild(sel);
+  });
+}
+
+function render() {
+  let table = document.getElementById("table");
+  let search = document.getElementById("search").value.toLowerCase();
+
+  let filters = [...document.querySelectorAll("select")];
+
+  let filtered = data.filter(row => {
+    let s = row.join(" ").toLowerCase().includes(search);
+
+    let f = filters.every(sel => {
+      return !sel.value || row[sel.dataset.col] === sel.value;
+    });
+
+    return s && f;
+  });
+
+  let html = "<tr>";
+  headers.forEach(h => html += `<th>${h}</th>`);
+  html += "</tr>";
+
+  let total=0, placed=0;
+  let company={}, branch={};
+
+  filtered.forEach(r => {
+    html += "<tr>";
+    r.forEach(c => html += `<td>${c}</td>`);
+    html += "</tr>";
+
+    total++;
+
+    if(r.join("").toLowerCase().includes("placed")) placed++;
+
+    headers.forEach((h,i) => {
+      if(h.toLowerCase().includes("company")) {
+        company[r[i]] = (company[r[i]]||0)+1;
+      }
+      if(h.toLowerCase().includes("branch")) {
+        branch[r[i]] = (branch[r[i]]||0)+1;
+      }
+    });
+  });
+
+  table.innerHTML = html;
+
+  document.getElementById("total").innerText = total;
+  document.getElementById("placed").innerText = placed;
+
+  let stats = "<h3>📊 Company-wise</h3>";
+  for(let c in company) stats += `<p>${c}: ${company[c]}</p>`;
+
+  stats += "<h3>📊 Branch-wise</h3>";
+  for(let b in branch) stats += `<p>${b}: ${branch[b]}</p>`;
+
+  document.getElementById("stats").innerHTML = stats;
+}
+
+document.getElementById("search").addEventListener("input", render);
+
+function printPage() {
+  window.print();
+}
+
+loadData();
+</script>
+
+</body>
+</html>
