@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CGPA Filter</title>
+
+  <style>
+    body{
+      font-family: Arial;
+      background:#f2f2f2;
+      padding:20px;
+    }
+
+    .box{
+      background:white;
+      padding:20px;
+      border-radius:10px;
+      width:350px;
+    }
+
+    input,select,button{
+      width:100%;
+      padding:10px;
+      margin-top:10px;
+    }
+
+    table{
+      width:100%;
+      margin-top:20px;
+      border-collapse:collapse;
+      background:white;
+    }
+
+    th,td{
+      border:1px solid #ccc;
+      padding:10px;
+      text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <h2>CGPA Filter</h2>
+
+  <select id="condition">
+    <option value=">=">>= Greater Than Equal</option>
+    <option value="<="><= Less Than Equal</option>
+    <option value=">">> Greater Than</option>
+    <option value="<">< Less Than</option>
+    <option value="==">= Equal</option>
+  </select>
+
+  <input type="number" id="cgpaValue" placeholder="Enter CGPA">
+
+  <button onclick="filterData()">Filter</button>
+
+</div>
+
+<table id="resultTable">
+
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>CGPA</th>
+    </tr>
+  </thead>
+
+  <tbody></tbody>
+
+</table>
+
+<script>
+
+let students = [];
+
+// GOOGLE SHEET CSV LINK
+const sheetURL =
+"https://docs.google.com/spreadsheets/d/1CkntVzL_LxGnJpB3shHJz3OwgNRTjvw1aR5XubgDLQQ/export?format=csv";
+
+fetch(sheetURL)
+.then(response => response.text())
+.then(data => {
+
+    const rows = data.split("\n").slice(1);
+
+    let tbody =
+      document.querySelector("#resultTable tbody");
+
+    rows.forEach(row => {
+
+        let cols = row.split(",");
+
+        if(cols.length >= 2){
+
+            let name = cols[0];
+            let cgpa = parseFloat(cols[1]);
+
+            students.push({name,cgpa});
+
+            tbody.innerHTML += `
+              <tr>
+                <td>${name}</td>
+                <td>${cgpa}</td>
+              </tr>
+            `;
+        }
+    });
+});
+
+function filterData(){
+
+    let condition =
+      document.getElementById("condition").value;
+
+    let value =
+      parseFloat(document.getElementById("cgpaValue").value);
+
+    let tbody =
+      document.querySelector("#resultTable tbody");
+
+    tbody.innerHTML = "";
+
+    students.forEach(student => {
+
+        let show = false;
+
+        if(condition == ">=" && student.cgpa >= value)
+            show = true;
+
+        else if(condition == "<=" && student.cgpa <= value)
+            show = true;
+
+        else if(condition == ">" && student.cgpa > value)
+            show = true;
+
+        else if(condition == "<" && student.cgpa < value)
+            show = true;
+
+        else if(condition == "==" && student.cgpa == value)
+            show = true;
+
+        if(show){
+
+            tbody.innerHTML += `
+              <tr>
+                <td>${student.name}</td>
+                <td>${student.cgpa}</td>
+              </tr>
+            `;
+        }
+    });
+}
+
+</script>
+
+</body>
+</html>
