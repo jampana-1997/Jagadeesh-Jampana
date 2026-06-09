@@ -61,6 +61,13 @@ font-size:16px;
 table{
 background:#fff;
 }
+
+/* FILTER INPUT ROW */
+thead input{
+width:100%;
+padding:5px;
+font-size:12px;
+}
 </style>
 </head>
 
@@ -93,8 +100,6 @@ background:#fff;
 </div>
 </div>
 
-<input type="text" id="searchBox" placeholder="Search Student...">
-
 <table id="placementTable" class="display nowrap" style="width:100%">
 <thead>
 <tr>
@@ -115,6 +120,7 @@ background:#fff;
 <th>Internship Letter</th>
 <th>Offer Letter</th>
 </tr>
+<tr id="filterRow"></tr>
 </thead>
 <tbody></tbody>
 </table>
@@ -133,7 +139,6 @@ background:#fff;
 
 <script>
 
-// GOOGLE SHEET CSV LINK
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/1w-EYhI3uYZABT87dHevtem6XYpDHS4tX/gviz/tq?tqx=out:csv";
 
@@ -146,23 +151,21 @@ complete:function(results){
 
 let data = results.data;
 
+// TOTAL STUDENTS
 document.getElementById("students").innerHTML = data.length;
 
-let offers = data.filter(
-x => x["Company Placed"]
-);
+// FILTER OFFERS (multiple offers safe check)
+let offers = data.filter(x => x["Company Placed"] && x["Company Placed"].trim() !== "");
 
 document.getElementById("offers").innerHTML = offers.length;
 document.getElementById("placed").innerHTML = offers.length;
 
-let companies = new Set(
-offers.map(x=>x["Company Placed"])
-);
-
+// UNIQUE COMPANIES
+let companies = new Set(offers.map(x => x["Company Placed"]));
 document.getElementById("companies").innerHTML = companies.size;
 
+// TABLE ROWS
 data.forEach(row=>{
-
 $('#placementTable tbody').append(`
 <tr>
 <td>${row["Roll Number"]||""}</td>
@@ -183,29 +186,27 @@ $('#placementTable tbody').append(`
 <td>${row["Offer Letter"]||""}</td>
 </tr>
 `);
-
 });
 
+// INIT DATATABLE
 let table = $('#placementTable').DataTable({
 responsive:true,
 pageLength:25,
 dom:'Bfrtip',
-buttons:[
-'excelHtml5',
-'pdfHtml5',
-'print'
-]
+buttons:['excelHtml5','pdfHtml5','print']
 });
 
-$('#searchBox').on('keyup',function(){
-table.search(this.value).draw();
+// 🔥 COLUMN WISE FILTERS (HEADER INPUTS)
+$('#placementTable thead tr:eq(1) th').each(function(i){
+$(this).html('<input type="text" placeholder="Search" />');
+
+$('input', this).on('keyup change', function(){
+if(table.column(i).search() !== this.value){
+table.column(i).search(this.value).draw();
+}
+});
 });
 
-},
-
-error:function(err){
-alert("Google Sheet Public ga ledu. Share → Anyone with Link → Viewer cheyyandi.");
-console.log(err);
 }
 
 });
