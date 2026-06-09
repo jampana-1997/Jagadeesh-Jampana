@@ -1,83 +1,70 @@
+```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Training & Placement Portal</title>
 
-<link rel="stylesheet"
-href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-
-<link rel="stylesheet"
-href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 
 <style>
-
 body{
-font-family:Arial;
-padding:20px;
-background:#f4f6f9;
+    font-family:Arial,sans-serif;
+    background:#f4f6f9;
+    margin:0;
+    padding:20px;
 }
-
-h1{
-text-align:center;
-background:#003366;
-color:white;
-padding:15px;
-border-radius:10px;
-margin-bottom:20px;
+.header{
+    background:#003366;
+    color:#fff;
+    text-align:center;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
 }
-
 table.dataTable thead th{
-background:#003366 !important;
-color:white !important;
+    background:#003366 !important;
+    color:white !important;
 }
-
 tfoot input{
-width:100%;
-padding:5px;
+    width:100%;
+    padding:5px;
 }
-
 </style>
-
 </head>
 
 <body>
 
+<div class="header">
 <h1>TRAINING & PLACEMENT CELL</h1>
+</div>
 
-<table id="placementTable"
-class="display nowrap"
-style="width:100%">
-
+<table id="placementTable" class="display nowrap" style="width:100%">
 <thead>
 <tr>
 <th>S.No</th>
 <th>Roll No</th>
 <th>Year</th>
-<th>Name</th>
+<th>Student Name</th>
 <th>Gender</th>
 <th>Branch</th>
 <th>Mobile</th>
 <th>Email</th>
 <th>Mode</th>
 <th>Company</th>
-<th>Role</th>
+<th>Job Role</th>
 <th>Sector</th>
-<th>Status</th>
+<th>Paid/Unpaid</th>
 <th>Salary</th>
 <th>Package</th>
 </tr>
@@ -88,66 +75,72 @@ style="width:100%">
 <th>S.No</th>
 <th>Roll No</th>
 <th>Year</th>
-<th>Name</th>
+<th>Student Name</th>
 <th>Gender</th>
 <th>Branch</th>
 <th>Mobile</th>
 <th>Email</th>
 <th>Mode</th>
 <th>Company</th>
-<th>Role</th>
+<th>Job Role</th>
 <th>Sector</th>
-<th>Status</th>
+<th>Paid/Unpaid</th>
 <th>Salary</th>
 <th>Package</th>
 </tr>
 </tfoot>
 
+<tbody>
+</tbody>
 </table>
 
 <script>
 
-$(document).ready(function(){
+const csvUrl =
+"https://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/gviz/tq?tqx=out:csv";
+
+fetch(csvUrl)
+.then(response => response.text())
+.then(csv => {
+
+const rows = csv.trim().split("\n").map(row => row.split(","));
+
+let tbody = "";
+
+for(let i=1;i<rows.length;i++){
+
+tbody += "<tr>";
+
+for(let j=0;j<15;j++){
+tbody += `<td>${rows[i][j] ? rows[i][j].replace(/"/g,'') : ''}</td>`;
+}
+
+tbody += "</tr>";
+}
+
+document.querySelector("#placementTable tbody").innerHTML = tbody;
 
 $('#placementTable tfoot th').each(function(){
-$(this).html('<input type="text" placeholder="Filter"/>');
+$(this).html('<input type="text" placeholder="Filter" />');
 });
 
 var table = $('#placementTable').DataTable({
-
-ajax:{
-url:'YOUR_GOOGLE_SHEET_JSON_URL',
-dataSrc:''
-},
-
 scrollX:true,
-
 pageLength:50,
-
 dom:'Bfrtip',
-
-buttons:[
-'excel',
-'csv',
-'pdf'
-]
-
+buttons:['excel','csv','pdf']
 });
 
 table.columns().every(function(){
-
 var that=this;
 
 $('input',this.footer()).on('keyup change clear',function(){
 
 if(that.search()!==this.value){
-
 that.search(this.value).draw();
-
 }
 
 });
-
 });
 
 });
@@ -156,3 +149,4 @@ that.search(this.value).draw();
 
 </body>
 </html>
+```
