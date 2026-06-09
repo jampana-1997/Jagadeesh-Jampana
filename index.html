@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Placement Dashboard</title>
+<title>Training & Placement Dashboard</title>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
@@ -24,57 +24,56 @@
 <style>
 
 body{
-font-family:Arial;
-background:#0B1F3A;
 margin:0;
-padding:20px;
-color:white;
+font-family:Arial,sans-serif;
+background:#0b1f3a;
+color:#fff;
 }
 
 .header{
+background:#07203f;
+padding:20px;
 text-align:center;
-font-size:30px;
+font-size:28px;
 font-weight:bold;
-margin-bottom:20px;
 }
 
 .cards{
-display:flex;
-gap:20px;
-flex-wrap:wrap;
-margin-bottom:20px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+padding:20px;
 }
 
 .card{
-background:#123A6D;
+background:#123a6d;
 padding:20px;
 border-radius:12px;
-flex:1;
-min-width:200px;
 text-align:center;
 }
 
 .card h2{
+font-size:35px;
 margin:0;
-font-size:30px;
 }
 
-.chart-container{
+.table-section{
+padding:20px;
+}
+
+.chart-box{
 background:white;
+margin:20px;
 padding:20px;
 border-radius:10px;
-margin-top:20px;
 }
 
 table{
-background:white;
 color:black;
 }
 
-.loading{
+.loader{
 position:fixed;
-top:0;
-left:0;
 width:100%;
 height:100%;
 background:#081426;
@@ -82,19 +81,19 @@ display:flex;
 justify-content:center;
 align-items:center;
 font-size:30px;
-z-index:9999;
+z-index:999;
 }
 
 </style>
 </head>
 <body>
 
-<div class="loading" id="loader">
+<div class="loader" id="loader">
 Loading Placement Data...
 </div>
 
 <div class="header">
-Training & Placement Dashboard
+TRAINING & PLACEMENT CELL DASHBOARD
 </div>
 
 <div class="cards">
@@ -109,99 +108,128 @@ Training & Placement Dashboard
 <p>Total Offers</p>
 </div>
 
+<div class="card">
+<h2 id="companies">0</h2>
+<p>Total Companies</p>
 </div>
 
+<div class="card">
+<h2 id="highest">0</h2>
+<p>Highest Package</p>
+</div>
+
+</div>
+
+<div class="table-section">
+
 <table id="placementTable" class="display" width="100%">
+
 <thead>
+
 <tr>
 
-<th>Roll Number</th>
+<th>Roll No</th>
 <th>Batch</th>
 <th>Name</th>
 <th>Gender</th>
 <th>Branch</th>
-<th>Mobile Number</th>
-<th>Email Id</th>
-<th>On/Off Campus</th>
+<th>Mobile</th>
+<th>Email</th>
+<th>Campus</th>
 <th>Company</th>
 <th>Role</th>
-<th>Nature Company</th>
+<th>Nature</th>
 <th>Paid/Unpaid</th>
 <th>Stipend</th>
-<th>Salary Package</th>
-<th>Internship Letter</th>
-<th>Offer Letter</th>
+<th>Package</th>
+<th>Internship</th>
+<th>Offer</th>
 
 </tr>
+
 </thead>
+
 <tbody></tbody>
+
 </table>
 
-<div class="chart-container">
+</div>
+
+<div class="chart-box">
 <canvas id="companyChart"></canvas>
 </div>
 
-<div class="chart-container">
+<div class="chart-box">
 <canvas id="branchChart"></canvas>
 </div>
 
 <script>
 
-// GOOGLE SHEET CSV LINK
-
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/export?format=csv";
 
 fetch(sheetURL)
-.then(res=>res.text())
-.then(data=>{
 
-let rows=data.split("\n").slice(1);
+.then(response => response.text())
+
+.then(csv => {
+
+let rows = csv.split("\n").slice(1);
 
 let companyCount={};
 let branchCount={};
 
-rows.forEach(r=>{
+let highestPackage=0;
 
-let c=r.split(",");
+rows.forEach(row=>{
 
-if(c.length>5){
+let col=row.split(",");
+
+if(col.length<10) return;
 
 $("#placementTable tbody").append(`
 <tr>
-<td>${c[0]||""}</td>
-<td>${c[1]||""}</td>
-<td>${c[2]||""}</td>
-<td>${c[3]||""}</td>
-<td>${c[4]||""}</td>
-<td>${c[5]||""}</td>
-<td>${c[6]||""}</td>
-<td>${c[7]||""}</td>
-<td>${c[8]||""}</td>
-<td>${c[9]||""}</td>
-<td>${c[10]||""}</td>
-<td>${c[11]||""}</td>
-<td>${c[12]||""}</td>
-<td>${c[13]||""}</td>
-<td>${c[14]||""}</td>
-<td>${c[15]||""}</td>
+<td>${col[0]||""}</td>
+<td>${col[1]||""}</td>
+<td>${col[2]||""}</td>
+<td>${col[3]||""}</td>
+<td>${col[4]||""}</td>
+<td>${col[5]||""}</td>
+<td>${col[6]||""}</td>
+<td>${col[7]||""}</td>
+<td>${col[8]||""}</td>
+<td>${col[9]||""}</td>
+<td>${col[10]||""}</td>
+<td>${col[11]||""}</td>
+<td>${col[12]||""}</td>
+<td>${col[13]||""}</td>
+<td>${col[14]||""}</td>
+<td>${col[15]||""}</td>
 </tr>
 `);
 
-let company=c[8]||"Unknown";
-let branch=c[4]||"Unknown";
+let company=col[8]||"Unknown";
+let branch=col[4]||"Unknown";
 
 companyCount[company]=(companyCount[company]||0)+1;
 branchCount[branch]=(branchCount[branch]||0)+1;
 
+let salary=parseFloat(col[13])||0;
+
+if(salary>highestPackage){
+highestPackage=salary;
 }
 
 });
 
 $("#students").text(rows.length);
 $("#offers").text(rows.length);
+$("#companies").text(Object.keys(companyCount).length);
+$("#highest").text(highestPackage);
 
 $('#placementTable').DataTable({
+
+responsive:true,
 
 dom:'Bfrtip',
 
@@ -214,25 +242,31 @@ buttons:[
 
 });
 
-new Chart(document.getElementById('companyChart'),{
+new Chart(document.getElementById("companyChart"),{
+
 type:'bar',
+
 data:{
 labels:Object.keys(companyCount),
 datasets:[{
-label:'Company Wise Count',
+label:'Company Wise Placements',
 data:Object.values(companyCount)
 }]
 }
+
 });
 
-new Chart(document.getElementById('branchChart'),{
+new Chart(document.getElementById("branchChart"),{
+
 type:'pie',
+
 data:{
 labels:Object.keys(branchCount),
 datasets:[{
 data:Object.values(branchCount)
 }]
 }
+
 });
 
 document.getElementById("loader").style.display="none";
