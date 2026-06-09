@@ -2,40 +2,51 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Placement Data</title>
+<title>Training & Placement Portal</title>
+
+<link rel="stylesheet"
+href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+
+<link rel="stylesheet"
+href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 
 <style>
 
 body{
 font-family:Arial;
-margin:20px;
+padding:20px;
+background:#f4f6f9;
 }
 
-#search{
-width:300px;
-padding:8px;
-margin-bottom:10px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-}
-
-th,td{
-border:1px solid #ccc;
-padding:8px;
-text-align:left;
-}
-
-th{
+h1{
+text-align:center;
 background:#003366;
 color:white;
-position:sticky;
-top:0;
+padding:15px;
+border-radius:10px;
+margin-bottom:20px;
 }
 
-.filter{
+table.dataTable thead th{
+background:#003366 !important;
+color:white !important;
+}
+
+tfoot input{
 width:100%;
 padding:5px;
 }
@@ -43,117 +54,103 @@ padding:5px;
 </style>
 
 </head>
+
 <body>
 
-<input type="text" id="search" placeholder="Search..." onkeyup="globalSearch()">
+<h1>TRAINING & PLACEMENT CELL</h1>
 
-<table id="sheetTable">
+<table id="placementTable"
+class="display nowrap"
+style="width:100%">
 
-<thead id="thead"></thead>
+<thead>
+<tr>
+<th>S.No</th>
+<th>Roll No</th>
+<th>Year</th>
+<th>Name</th>
+<th>Gender</th>
+<th>Branch</th>
+<th>Mobile</th>
+<th>Email</th>
+<th>Mode</th>
+<th>Company</th>
+<th>Role</th>
+<th>Sector</th>
+<th>Status</th>
+<th>Salary</th>
+<th>Package</th>
+</tr>
+</thead>
 
-<tbody id="tbody"></tbody>
+<tfoot>
+<tr>
+<th>S.No</th>
+<th>Roll No</th>
+<th>Year</th>
+<th>Name</th>
+<th>Gender</th>
+<th>Branch</th>
+<th>Mobile</th>
+<th>Email</th>
+<th>Mode</th>
+<th>Company</th>
+<th>Role</th>
+<th>Sector</th>
+<th>Status</th>
+<th>Salary</th>
+<th>Package</th>
+</tr>
+</tfoot>
 
 </table>
 
 <script>
 
-const sheetURL =
-"https://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/gviz/tq?tqx=out:csv";
+$(document).ready(function(){
 
-fetch(sheetURL)
-.then(res=>res.text())
-.then(csv=>{
-
-let rows = csv.split("\n").map(r=>r.split(","));
-
-let headers = rows[0];
-
-let headerRow = "<tr>";
-let filterRow = "<tr>";
-
-headers.forEach((h,index)=>{
-
-headerRow += `<th>${h.replace(/"/g,"")}</th>`;
-
-filterRow += `
-<th>
-<input
-class="filter"
-type="text"
-placeholder="Filter"
-onkeyup="columnFilter(${index},this.value)">
-</th>`;
+$('#placementTable tfoot th').each(function(){
+$(this).html('<input type="text" placeholder="Filter"/>');
 });
 
-headerRow += "</tr>";
-filterRow += "</tr>";
+var table = $('#placementTable').DataTable({
 
-document.getElementById("thead").innerHTML =
-headerRow + filterRow;
+ajax:{
+url:'YOUR_GOOGLE_SHEET_JSON_URL',
+dataSrc:''
+},
 
-let body = "";
+scrollX:true,
 
-for(let i=1;i<rows.length;i++){
+pageLength:50,
 
-body += "<tr>";
+dom:'Bfrtip',
 
-rows[i].forEach(col=>{
-
-body += `<td>${col.replace(/"/g,"")}</td>`;
+buttons:[
+'excel',
+'csv',
+'pdf'
+]
 
 });
 
-body += "</tr>";
-}
+table.columns().every(function(){
 
-document.getElementById("tbody").innerHTML = body;
+var that=this;
 
-});
+$('input',this.footer()).on('keyup change clear',function(){
 
-function globalSearch(){
+if(that.search()!==this.value){
 
-let value =
-document.getElementById("search")
-.value.toUpperCase();
-
-let rows =
-document.querySelectorAll("#tbody tr");
-
-rows.forEach(row=>{
-
-let text =
-row.innerText.toUpperCase();
-
-row.style.display =
-text.includes(value) ? "" : "none";
-
-});
+that.search(this.value).draw();
 
 }
 
-function columnFilter(col,value){
-
-value = value.toUpperCase();
-
-let rows =
-document.querySelectorAll("#tbody tr");
-
-rows.forEach(row=>{
-
-let cell =
-row.cells[col];
-
-if(!cell) return;
-
-let text =
-cell.innerText.toUpperCase();
-
-row.style.display =
-text.includes(value) ? "" : "none";
+});
 
 });
 
-}
+});
 
 </script>
 
