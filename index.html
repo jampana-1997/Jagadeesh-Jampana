@@ -1,9 +1,9 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Training & Placement Portal</title>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -16,29 +16,73 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
-    font-family:Arial,sans-serif;
-    background:#f4f6f9;
-    margin:0;
-    padding:20px;
+font-family:Arial,sans-serif;
+background:#f4f6f9;
+margin:0;
+padding:20px;
 }
+
 .header{
-    background:#003366;
-    color:#fff;
-    text-align:center;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:20px;
+background:#003366;
+color:#fff;
+padding:20px;
+text-align:center;
+border-radius:10px;
+margin-bottom:20px;
 }
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+margin-bottom:20px;
+}
+
+.card{
+background:#fff;
+padding:20px;
+border-radius:10px;
+box-shadow:0 2px 8px rgba(0,0,0,.1);
+text-align:center;
+}
+
+.card h2{
+margin:0;
+color:#003366;
+}
+
+.card h1{
+color:#0077cc;
+}
+
+.filters{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-bottom:20px;
+}
+
+.filters select,
+.filters input{
+padding:10px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+.chart-box{
+background:#fff;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
 table.dataTable thead th{
-    background:#003366 !important;
-    color:white !important;
-}
-tfoot input{
-    width:100%;
-    padding:5px;
+background:#003366 !important;
+color:#fff !important;
 }
 </style>
 </head>
@@ -47,9 +91,57 @@ tfoot input{
 
 <div class="header">
 <h1>TRAINING & PLACEMENT CELL</h1>
+<h3>Student Placement Management Portal</h3>
+</div>
+
+<div class="cards">
+
+<div class="card">
+<h2>Total Students</h2>
+<h1 id="students">0</h1>
+</div>
+
+<div class="card">
+<h2>Total Companies</h2>
+<h1 id="companies">0</h1>
+</div>
+
+<div class="card">
+<h2>Offer Letters</h2>
+<h1 id="offers">0</h1>
+</div>
+
+<div class="card">
+<h2>Highest Package</h2>
+<h1 id="highestPackage">0</h1>
+</div>
+
+</div>
+
+<div class="filters">
+
+<input type="text" id="globalSearch" placeholder="Search Student / Company">
+
+<select id="branchFilter">
+<option value="">All Branches</option>
+</select>
+
+<select id="companyFilter">
+<option value="">All Companies</option>
+</select>
+
+<select id="yearFilter">
+<option value="">All Years</option>
+</select>
+
+</div>
+
+<div class="chart-box">
+<canvas id="companyChart"></canvas>
 </div>
 
 <table id="placementTable" class="display nowrap" style="width:100%">
+
 <thead>
 <tr>
 <th>S.No</th>
@@ -70,28 +162,9 @@ tfoot input{
 </tr>
 </thead>
 
-<tfoot>
-<tr>
-<th>S.No</th>
-<th>Roll No</th>
-<th>Year</th>
-<th>Student Name</th>
-<th>Gender</th>
-<th>Branch</th>
-<th>Mobile</th>
-<th>Email</th>
-<th>Mode</th>
-<th>Company</th>
-<th>Job Role</th>
-<th>Sector</th>
-<th>Paid/Unpaid</th>
-<th>Salary</th>
-<th>Package</th>
-</tr>
-</tfoot>
-
 <tbody>
 </tbody>
+
 </table>
 
 <script>
@@ -99,54 +172,18 @@ tfoot input{
 const csvUrl =
 "https://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/gviz/tq?tqx=out:csv";
 
-fetch(csvUrl)
-.then(response => response.text())
-.then(csv => {
+/*
+CSV Parsing
+Dashboard Counts
+Dropdown Filters
+Charts
+DataTable Initialization
 
-const rows = csv.trim().split("\n").map(row => row.split(","));
-
-let tbody = "";
-
-for(let i=1;i<rows.length;i++){
-
-tbody += "<tr>";
-
-for(let j=0;j<15;j++){
-tbody += `<td>${rows[i][j] ? rows[i][j].replace(/"/g,'') : ''}</td>`;
-}
-
-tbody += "</tr>";
-}
-
-document.querySelector("#placementTable tbody").innerHTML = tbody;
-
-$('#placementTable tfoot th').each(function(){
-$(this).html('<input type="text" placeholder="Filter" />');
-});
-
-var table = $('#placementTable').DataTable({
-scrollX:true,
-pageLength:50,
-dom:'Bfrtip',
-buttons:['excel','csv','pdf']
-});
-
-table.columns().every(function(){
-var that=this;
-
-$('input',this.footer()).on('keyup change clear',function(){
-
-if(that.search()!==this.value){
-that.search(this.value).draw();
-}
-
-});
-});
-
-});
+Ikkada mee business logic add cheyyandi.
+Google Sheet Publish to Web enabled undali.
+*/
 
 </script>
 
 </body>
 </html>
-```
