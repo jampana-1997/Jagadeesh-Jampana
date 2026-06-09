@@ -9,50 +9,61 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
 body{
-font-family:Segoe UI,sans-serif;
+font-family:Arial,sans-serif;
 background:#f4f6f9;
+margin:0;
 padding:20px;
 }
+
 .header{
 background:#003366;
-color:white;
+color:#fff;
 padding:20px;
 border-radius:10px;
 text-align:center;
 margin-bottom:20px;
 }
+
 .cards{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
 gap:15px;
 margin-bottom:20px;
 }
+
 .card{
-background:white;
+background:#fff;
 padding:20px;
 border-radius:10px;
 box-shadow:0 2px 10px rgba(0,0,0,.1);
 text-align:center;
 }
+
 .card h2{
-font-size:32px;
+font-size:35px;
+margin:0;
 color:#003366;
 }
-.search-box{
-margin-bottom:15px;
+
+.card p{
+margin-top:10px;
+font-weight:bold;
 }
-.search-box input{
+
+#searchBox{
 width:100%;
 padding:10px;
+margin-bottom:15px;
 font-size:16px;
 }
+
 table{
-background:white;
+background:#fff;
 }
 </style>
 </head>
+
 <body>
 
 <div class="header">
@@ -72,19 +83,17 @@ background:white;
 </div>
 
 <div class="card">
-<h2 id="companies">0</h2>
-<p>Companies</p>
-</div>
-
-<div class="card">
 <h2 id="placed">0</h2>
 <p>Placed Students</p>
 </div>
+
+<div class="card">
+<h2 id="companies">0</h2>
+<p>Companies</p>
+</div>
 </div>
 
-<div class="search-box">
-<input type="text" id="searchBox" placeholder="Search Students...">
-</div>
+<input type="text" id="searchBox" placeholder="Search Student...">
 
 <table id="placementTable" class="display nowrap" style="width:100%">
 <thead>
@@ -124,28 +133,33 @@ background:white;
 
 <script>
 
-// Published CSV URL ikkada pettandi
-const sheetURL = "students.csv";
+// GOOGLE SHEET CSV LINK
+const sheetURL =
+"https://docs.google.com/spreadsheets/d/1w-EYhI3uYZABT87dHevtem6XYpDHS4tX/gviz/tq?tqx=out:csv";
 
 Papa.parse(sheetURL,{
 download:true,
 header:true,
 skipEmptyLines:true,
+
 complete:function(results){
 
-const data = results.data;
+let data = results.data;
 
-document.getElementById("students").innerText = data.length;
+document.getElementById("students").innerHTML = data.length;
 
-const offers = data.filter(x => x["Company Placed"]);
-document.getElementById("offers").innerText = offers.length;
-document.getElementById("placed").innerText = offers.length;
-
-const companies = new Set(
-offers.map(x => x["Company Placed"])
+let offers = data.filter(
+x => x["Company Placed"]
 );
 
-document.getElementById("companies").innerText = companies.size;
+document.getElementById("offers").innerHTML = offers.length;
+document.getElementById("placed").innerHTML = offers.length;
+
+let companies = new Set(
+offers.map(x=>x["Company Placed"])
+);
+
+document.getElementById("companies").innerHTML = companies.size;
 
 data.forEach(row=>{
 
@@ -172,7 +186,7 @@ $('#placementTable tbody').append(`
 
 });
 
-const table = $('#placementTable').DataTable({
+let table = $('#placementTable').DataTable({
 responsive:true,
 pageLength:25,
 dom:'Bfrtip',
@@ -183,11 +197,17 @@ buttons:[
 ]
 });
 
-$('#searchBox').on('keyup', function(){
+$('#searchBox').on('keyup',function(){
 table.search(this.value).draw();
 });
 
+},
+
+error:function(err){
+alert("Google Sheet Public ga ledu. Share → Anyone with Link → Viewer cheyyandi.");
+console.log(err);
 }
+
 });
 
 </script>
