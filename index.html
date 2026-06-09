@@ -1,74 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>T&P Dashboard</title>
+<title>Placement Data</title>
 
 <style>
+
 body{
-font-family:Arial,sans-serif;
-background:#f4f6f9;
-margin:0;
+font-family:Arial;
+margin:20px;
 }
 
-.header{
-background:#003366;
-color:white;
-padding:20px;
-text-align:center;
-}
-
-.dashboard{
-display:flex;
-gap:20px;
-padding:20px;
-flex-wrap:wrap;
-}
-
-.card{
-background:white;
-padding:20px;
-border-radius:10px;
-box-shadow:0 2px 8px rgba(0,0,0,0.1);
-flex:1;
-min-width:220px;
-text-align:center;
-}
-
-.card h2{
-margin:0;
-color:#003366;
-}
-
-.card p{
-font-size:30px;
-font-weight:bold;
-color:#0066cc;
-}
-
-.controls{
-padding:20px;
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-}
-
-input,select{
-padding:10px;
-border:1px solid #ccc;
-border-radius:5px;
+#search{
+width:300px;
+padding:8px;
+margin-bottom:10px;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-background:white;
 }
 
 th,td{
-border:1px solid #ddd;
-padding:10px;
+border:1px solid #ccc;
+padding:8px;
 text-align:left;
 }
 
@@ -79,116 +35,121 @@ position:sticky;
 top:0;
 }
 
-tr:nth-child(even){
-background:#f9f9f9;
+.filter{
+width:100%;
+padding:5px;
 }
-</style>
-</head>
 
+</style>
+
+</head>
 <body>
 
-<div class="header">
-<h1>TRAINING & PLACEMENT CELL DASHBOARD</h1>
-</div>
+<input type="text" id="search" placeholder="Search..." onkeyup="globalSearch()">
 
-<div class="dashboard">
+<table id="sheetTable">
 
-<div class="card">
-<h2>Total Students</h2>
-<p id="students">0</p>
-</div>
+<thead id="thead"></thead>
 
-<div class="card">
-<h2>Offer Letters</h2>
-<p id="offers">0</p>
-</div>
+<tbody id="tbody"></tbody>
 
-<div class="card">
-<h2>Companies</h2>
-<p id="companies">0</p>
-</div>
-
-</div>
-
-<div class="controls">
-<input type="text" id="searchBox" placeholder="Search..." onkeyup="filterTable()">
-
-<select id="statusFilter" onchange="filterTable()">
-<option value="">All</option>
-<option value="Selected">Selected</option>
-<option value="Not Selected">Not Selected</option>
-</select>
-</div>
-
-<table id="dataTable">
-<thead>
-<tr id="tableHead"></tr>
-</thead>
-<tbody id="tableBody"></tbody>
 </table>
 
 <script>
 
-// PUBLISH TO WEB CSV URL
-const csvUrl =
+const sheetURL =
 "https://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/gviz/tq?tqx=out:csv";
 
-fetch(csvUrl)
-.then(res => res.text())
-.then(data => {
+fetch(sheetURL)
+.then(res=>res.text())
+.then(csv=>{
 
-let rows = data.trim().split("\n").map(r=>r.split(","));
+let rows = csv.split("\n").map(r=>r.split(","));
 
 let headers = rows[0];
 
-let headHtml = "";
+let headerRow = "<tr>";
+let filterRow = "<tr>";
 
-headers.forEach(h=>{
-headHtml += `<th>${h.replace(/"/g,"")}</th>`;
+headers.forEach((h,index)=>{
+
+headerRow += `<th>${h.replace(/"/g,"")}</th>`;
+
+filterRow += `
+<th>
+<input
+class="filter"
+type="text"
+placeholder="Filter"
+onkeyup="columnFilter(${index},this.value)">
+</th>`;
 });
 
-document.getElementById("tableHead").innerHTML = headHtml;
+headerRow += "</tr>";
+filterRow += "</tr>";
 
-let bodyHtml = "";
+document.getElementById("thead").innerHTML =
+headerRow + filterRow;
+
+let body = "";
 
 for(let i=1;i<rows.length;i++){
 
-bodyHtml += "<tr>";
+body += "<tr>";
 
 rows[i].forEach(col=>{
-bodyHtml += `<td>${col.replace(/"/g,"")}</td>`;
+
+body += `<td>${col.replace(/"/g,"")}</td>`;
+
 });
 
-bodyHtml += "</tr>";
+body += "</tr>";
 }
 
-document.getElementById("tableBody").innerHTML = bodyHtml;
+document.getElementById("tbody").innerHTML = body;
 
-document.getElementById("students").innerText = rows.length-1;
+});
 
-})
-.catch(err=>console.log(err));
+function globalSearch(){
 
-function filterTable(){
-
-let input =
-document.getElementById("searchBox")
+let value =
+document.getElementById("search")
 .value.toUpperCase();
 
-let tr =
-document.querySelectorAll("#tableBody tr");
+let rows =
+document.querySelectorAll("#tbody tr");
 
-tr.forEach(row=>{
+rows.forEach(row=>{
 
-let txt =
+let text =
 row.innerText.toUpperCase();
 
-if(txt.indexOf(input)>-1){
-row.style.display="";
+row.style.display =
+text.includes(value) ? "" : "none";
+
+});
+
 }
-else{
-row.style.display="none";
-}
+
+function columnFilter(col,value){
+
+value = value.toUpperCase();
+
+let rows =
+document.querySelectorAll("#tbody tr");
+
+rows.forEach(row=>{
+
+let cell =
+row.cells[col];
+
+if(!cell) return;
+
+let text =
+cell.innerText.toUpperCase();
+
+row.style.display =
+text.includes(value) ? "" : "none";
 
 });
 
