@@ -3,174 +3,241 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Placement Dashboard</title>
 
-<title>Training & Placement Portal</title>
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+
 body{
-font-family:Arial,sans-serif;
-background:#f4f6f9;
+font-family:Arial;
+background:#0B1F3A;
 margin:0;
 padding:20px;
+color:white;
 }
 
 .header{
-background:#003366;
-color:#fff;
-padding:20px;
 text-align:center;
-border-radius:10px;
+font-size:30px;
+font-weight:bold;
 margin-bottom:20px;
 }
 
 .cards{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+display:flex;
 gap:20px;
+flex-wrap:wrap;
 margin-bottom:20px;
 }
 
 .card{
-background:#fff;
+background:#123A6D;
 padding:20px;
-border-radius:10px;
-box-shadow:0 2px 8px rgba(0,0,0,.1);
+border-radius:12px;
+flex:1;
+min-width:200px;
 text-align:center;
 }
 
 .card h2{
 margin:0;
-color:#003366;
+font-size:30px;
 }
 
-.card h1{
-color:#0077cc;
-}
-
-.filters{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-margin-bottom:20px;
-}
-
-.filters select,
-.filters input{
-padding:10px;
-border:1px solid #ccc;
-border-radius:5px;
-}
-
-.chart-box{
-background:#fff;
+.chart-container{
+background:white;
 padding:20px;
 border-radius:10px;
-margin-bottom:20px;
+margin-top:20px;
 }
 
-table.dataTable thead th{
-background:#003366 !important;
-color:#fff !important;
+table{
+background:white;
+color:black;
 }
+
+.loading{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#081426;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:30px;
+z-index:9999;
+}
+
 </style>
 </head>
-
 <body>
 
+<div class="loading" id="loader">
+Loading Placement Data...
+</div>
+
 <div class="header">
-<h1>TRAINING & PLACEMENT CELL</h1>
-<h3>Student Placement Management Portal</h3>
+Training & Placement Dashboard
 </div>
 
 <div class="cards">
 
 <div class="card">
-<h2>Total Students</h2>
-<h1 id="students">0</h1>
+<h2 id="students">0</h2>
+<p>Total Students</p>
 </div>
 
 <div class="card">
-<h2>Total Companies</h2>
-<h1 id="companies">0</h1>
-</div>
-
-<div class="card">
-<h2>Offer Letters</h2>
-<h1 id="offers">0</h1>
-</div>
-
-<div class="card">
-<h2>Highest Package</h2>
-<h1 id="highestPackage">0</h1>
+<h2 id="offers">0</h2>
+<p>Total Offers</p>
 </div>
 
 </div>
 
-<div class="filters">
+<table id="placementTable" class="display" width="100%">
+<thead>
+<tr>
 
-<input type="text" id="globalSearch" placeholder="Search Student / Company">
+<th>Roll Number</th>
+<th>Batch</th>
+<th>Name</th>
+<th>Gender</th>
+<th>Branch</th>
+<th>Mobile Number</th>
+<th>Email Id</th>
+<th>On/Off Campus</th>
+<th>Company</th>
+<th>Role</th>
+<th>Nature Company</th>
+<th>Paid/Unpaid</th>
+<th>Stipend</th>
+<th>Salary Package</th>
+<th>Internship Letter</th>
+<th>Offer Letter</th>
 
-<select id="branchFilter">
-<option value="">All Branches</option>
-</select>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
 
-<select id="companyFilter">
-<option value="">All Companies</option>
-</select>
-
-<select id="yearFilter">
-<option value="">All Years</option>
-</select>
-
-</div>
-
-<div class="chart-box">
+<div class="chart-container">
 <canvas id="companyChart"></canvas>
 </div>
 
-<table id="placementTable" class="display nowrap" style="width:100%">
-
-<thead>
-<tr>
-<th>S.No</th>
-<th>Roll No</th>
-<th>Year</th>
-<th>Student Name</th>
-<th>Gender</th>
-<th>Branch</th>
-<th>Mobile</th>
-<th>Email</th>
-<th>Mode</th>
-<th>Company</th>
-<th>Job Role</th>
-<th>Sector</th>
-<th>Paid/Unpaid</th>
-<th>Salary</th>
-<th>Package</th>
-</tr>
-</thead>
-
-<tbody>
-</tbody>
-
-</table>
+<div class="chart-container">
+<canvas id="branchChart"></canvas>
+</div>
 
 <script>
 
-const csvUrl =
-"https://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/gviz/tq?tqx=out:csv";
+// GOOGLE SHEET CSV LINK
+
+const sheetURL =
+"https://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/export?format=csv";
+
+fetch(sheetURL)
+.then(res=>res.text())
+.then(data=>{
+
+let rows=data.split("\n").slice(1);
+
+let companyCount={};
+let branchCount={};
+
+rows.forEach(r=>{
+
+let c=r.split(",");
+
+if(c.length>5){
+
+$("#placementTable tbody").append(`
+<tr>
+<td>${c[0]||""}</td>
+<td>${c[1]||""}</td>
+<td>${c[2]||""}</td>
+<td>${c[3]||""}</td>
+<td>${c[4]||""}</td>
+<td>${c[5]||""}</td>
+<td>${c[6]||""}</td>
+<td>${c[7]||""}</td>
+<td>${c[8]||""}</td>
+<td>${c[9]||""}</td>
+<td>${c[10]||""}</td>
+<td>${c[11]||""}</td>
+<td>${c[12]||""}</td>
+<td>${c[13]||""}</td>
+<td>${c[14]||""}</td>
+<td>${c[15]||""}</td>
+</tr>
+`);
+
+let company=c[8]||"Unknown";
+let branch=c[4]||"Unknown";
+
+companyCount[company]=(companyCount[company]||0)+1;
+branchCount[branch]=(branchCount[branch]||0)+1;
+
+}
+
+});
+
+$("#students").text(rows.length);
+$("#offers").text(rows.length);
+
+$('#placementTable').DataTable({
+
+dom:'Bfrtip',
+
+buttons:[
+'excel',
+'csv',
+'pdf',
+'print'
+]
+
+});
+
+new Chart(document.getElementById('companyChart'),{
+type:'bar',
+data:{
+labels:Object.keys(companyCount),
+datasets:[{
+label:'Company Wise Count',
+data:Object.values(companyCount)
+}]
+}
+});
+
+new Chart(document.getElementById('branchChart'),{
+type:'pie',
+data:{
+labels:Object.keys(branchCount),
+datasets:[{
+data:Object.values(branchCount)
+}]
+}
+});
+
+document.getElementById("loader").style.display="none";
+
+});
 
 </script>
 
