@@ -1,99 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Training & Placement Dashboard</title>
+<title>MGIT Placement Dashboard</title>
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
-
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet"
+href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 
 <style>
 
 body{
+font-family:Arial;
+background:#f4f6f9;
 margin:0;
-font-family:Arial,sans-serif;
-background:#0b1f3a;
-color:#fff;
+padding:20px;
 }
 
 .header{
-background:#07203f;
-padding:20px;
+background:#003366;
+color:white;
+padding:15px;
 text-align:center;
-font-size:28px;
-font-weight:bold;
+border-radius:10px;
 }
 
 .cards{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:15px;
-padding:20px;
+display:flex;
+gap:20px;
+margin-top:20px;
+flex-wrap:wrap;
 }
 
 .card{
-background:#123a6d;
+flex:1;
+min-width:220px;
+background:white;
 padding:20px;
 border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,.15);
 text-align:center;
 }
 
 .card h2{
-font-size:35px;
 margin:0;
+color:#003366;
+font-size:32px;
 }
 
-.table-section{
-padding:20px;
-}
-
-.chart-box{
-background:white;
-margin:20px;
-padding:20px;
-border-radius:10px;
+.card p{
+margin-top:10px;
+font-weight:bold;
 }
 
 table{
-color:black;
-}
-
-.loader{
-position:fixed;
 width:100%;
-height:100%;
-background:#081426;
-display:flex;
-justify-content:center;
-align-items:center;
-font-size:30px;
-z-index:999;
+margin-top:20px;
 }
 
 </style>
 </head>
+
 <body>
 
-<div class="loader" id="loader">
-Loading Placement Data...
-</div>
-
 <div class="header">
-TRAINING & PLACEMENT CELL DASHBOARD
+<h1>TRAINING & PLACEMENT CELL</h1>
+<h3>Placement Dashboard 2026</h3>
 </div>
 
 <div class="cards">
@@ -109,26 +80,21 @@ TRAINING & PLACEMENT CELL DASHBOARD
 </div>
 
 <div class="card">
-<h2 id="companies">0</h2>
-<p>Total Companies</p>
+<h2 id="placed">0</h2>
+<p>Placed Students</p>
 </div>
 
 <div class="card">
-<h2 id="highest">0</h2>
-<p>Highest Package</p>
+<h2 id="companies">0</h2>
+<p>Companies</p>
 </div>
 
 </div>
 
-<div class="table-section">
-
-<table id="placementTable" class="display" width="100%">
-
+<table id="placementTable" class="display">
 <thead>
-
 <tr>
-
-<th>Roll No</th>
+<th>Roll Number</th>
 <th>Batch</th>
 <th>Name</th>
 <th>Gender</th>
@@ -142,135 +108,86 @@ TRAINING & PLACEMENT CELL DASHBOARD
 <th>Paid/Unpaid</th>
 <th>Stipend</th>
 <th>Package</th>
-<th>Internship</th>
-<th>Offer</th>
-
+<th>Internship Letter</th>
+<th>Offer Letter</th>
 </tr>
-
 </thead>
-
 <tbody></tbody>
-
 </table>
 
-</div>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<div class="chart-box">
-<canvas id="companyChart"></canvas>
-</div>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 
-<div class="chart-box">
-<canvas id="branchChart"></canvas>
-</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <script>
 
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/export?format=csv";
 
-fetch(sheetURL)
+Papa.parse(sheetURL,{
+download:true,
+header:true,
+complete:function(results){
 
-.then(response => response.text())
+let data=results.data;
 
-.then(csv => {
+let totalStudents=data.length;
 
-let rows = csv.split("\n").slice(1);
+let totalOffers=data.filter(
+x=>x["Company Placed"]
+).length;
 
-let companyCount={};
-let branchCount={};
+let companies=
+new Set(
+data.map(x=>x["Company Placed"])
+.filter(Boolean)
+);
 
-let highestPackage=0;
+document.getElementById("students").innerHTML=
+totalStudents;
 
-rows.forEach(row=>{
+document.getElementById("offers").innerHTML=
+totalOffers;
 
-let col=row.split(",");
+document.getElementById("placed").innerHTML=
+totalOffers;
 
-if(col.length<10) return;
+document.getElementById("companies").innerHTML=
+companies.size;
+
+data.forEach(row=>{
 
 $("#placementTable tbody").append(`
 <tr>
-<td>${col[0]||""}</td>
-<td>${col[1]||""}</td>
-<td>${col[2]||""}</td>
-<td>${col[3]||""}</td>
-<td>${col[4]||""}</td>
-<td>${col[5]||""}</td>
-<td>${col[6]||""}</td>
-<td>${col[7]||""}</td>
-<td>${col[8]||""}</td>
-<td>${col[9]||""}</td>
-<td>${col[10]||""}</td>
-<td>${col[11]||""}</td>
-<td>${col[12]||""}</td>
-<td>${col[13]||""}</td>
-<td>${col[14]||""}</td>
-<td>${col[15]||""}</td>
+<td>${row["Roll Number"]||""}</td>
+<td>${row["Batch"]||""}</td>
+<td>${row["Name"]||""}</td>
+<td>${row["Gender"]||""}</td>
+<td>${row["Branch"]||""}</td>
+<td>${row["Mobile Number"]||""}</td>
+<td>${row["Email Id"]||""}</td>
+<td>${row["On Campus/ Off Campus"]||""}</td>
+<td>${row["Company Placed"]||""}</td>
+<td>${row["Role"]||""}</td>
+<td>${row["Nature of the Company"]||""}</td>
+<td>${row["Paid/Unpaid Interns"]||""}</td>
+<td>${row["Stipend (Per Month)"]||""}</td>
+<td>${row["Salary package"]||""}</td>
+<td>${row["Internship Letter"]||""}</td>
+<td>${row["Offer Letter"]||""}</td>
 </tr>
 `);
 
-let company=col[8]||"Unknown";
-let branch=col[4]||"Unknown";
-
-companyCount[company]=(companyCount[company]||0)+1;
-branchCount[branch]=(branchCount[branch]||0)+1;
-
-let salary=parseFloat(col[13])||0;
-
-if(salary>highestPackage){
-highestPackage=salary;
-}
-
 });
-
-$("#students").text(rows.length);
-$("#offers").text(rows.length);
-$("#companies").text(Object.keys(companyCount).length);
-$("#highest").text(highestPackage);
 
 $('#placementTable').DataTable({
-
-responsive:true,
-
-dom:'Bfrtip',
-
-buttons:[
-'excel',
-'csv',
-'pdf',
-'print'
-]
-
+pageLength:25,
+responsive:true
 });
 
-new Chart(document.getElementById("companyChart"),{
-
-type:'bar',
-
-data:{
-labels:Object.keys(companyCount),
-datasets:[{
-label:'Company Wise Placements',
-data:Object.values(companyCount)
-}]
 }
-
-});
-
-new Chart(document.getElementById("branchChart"),{
-
-type:'pie',
-
-data:{
-labels:Object.keys(branchCount),
-datasets:[{
-data:Object.values(branchCount)
-}]
-}
-
-});
-
-document.getElementById("loader").style.display="none";
-
 });
 
 </script>
