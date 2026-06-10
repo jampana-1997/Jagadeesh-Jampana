@@ -1,188 +1,208 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MGIT Placement Records</title>
-
-<style>
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#f5f7fa;
-}
-
-.header{
-    background:#0a2342;
-    color:white;
-    text-align:center;
-    padding:20px;
-}
-
-.header h1{
-    margin:0;
-    font-size:42px;
-}
-
-.header h3{
-    color:#90EE90;
-}
-
-.stats{
-    background:#0B7D3B;
-    color:white;
-    display:flex;
-    justify-content:center;
-    gap:80px;
-    padding:15px;
-    font-size:24px;
-    font-weight:bold;
-}
-
-.filters{
-    background:#10294F;
-    padding:15px;
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    justify-content:center;
-}
-
-.filters input,
-.filters select{
-    padding:10px;
-    border:none;
-    border-radius:5px;
-    min-width:180px;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-    background:white;
-}
-
-th{
-    background:#10294F;
-    color:white;
-    padding:10px;
-}
-
-td{
-    padding:8px;
-    border:1px solid #ddd;
-}
-
-.container{
-    padding:15px;
-    overflow:auto;
-}
-</style>
-</head>
-<body>
-
-<div class="header">
-    <h1>MGIT Placement Records</h1>
-    <h3>Academic Year 2025 - 2026</h3>
-</div>
-
-<div class="stats">
-    <div>Total Offers : <span id="offers">0</span></div>
-    <div>Total Placed Students : <span id="placed">0</span></div>
-</div>
-
 <div class="filters">
-    <input type="text" placeholder="Search Student / Roll / Company">
 
-    <select>
-        <option>All Batches</option>
-    </select>
+<input type="text" id="searchBox"
+placeholder="Search Student / Roll / Company">
 
-    <select>
-        <option>All Branches</option>
-    </select>
+<select id="batchFilter">
+<option value="">All Batches</option>
+</select>
 
-    <select>
-        <option>All Companies</option>
-    </select>
+<select id="branchFilter">
+<option value="">All Branches</option>
+</select>
 
-    <select>
-        <option>Nature of the Company</option>
-    </select>
+<select id="companyFilter">
+<option value="">All Companies</option>
+</select>
 
-    <select>
-        <option>Internship Type</option>
-    </select>
 </div>
-
-<div class="container">
-<table>
-<thead>
-<tr>
-<th>Roll Number</th>
-<th>Batch</th>
-<th>Name</th>
-<th>Gender</th>
-<th>Branch</th>
-<th>Company</th>
-<th>Role</th>
-<th>Package</th>
-</tr>
-</thead>
-<tbody id="tableBody">
-</tbody>
-</table>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <script>
 
 const csvUrl =
 "https://docs.google.com/spreadsheets/d/1w-EYhI3uYZABT87dHevtem6XYpDHS4tX/export?format=csv";
 
+let allData=[];
+
 Papa.parse(csvUrl,{
-    download:true,
-    header:true,
+download:true,
+header:true,
 
-    complete:function(results){
+complete:function(results){
 
-        let data = results.data;
+allData = results.data.filter(
+row => row["Roll Number"]
+);
 
-        let totalOffers = 0;
-        let students = new Set();
+loadTable(allData);
 
-        let html = "";
+let batches =
+[...new Set(allData.map(r=>r["Batch"]))];
 
-        data.forEach(row=>{
+let branches =
+[...new Set(allData.map(r=>r["Branch"]))];
 
-            if(!row["Roll Number"]) return;
+let companies =
+[...new Set(allData.map(
+r=>r["Company Placed"]
+))];
 
-            totalOffers++;
-            students.add(row["Roll Number"]);
-
-            html += `
-            <tr>
-                <td>${row["Roll Number"]||""}</td>
-                <td>${row["Batch"]||""}</td>
-                <td>${row["Name"]||""}</td>
-                <td>${row["Gender"]||""}</td>
-                <td>${row["Branch"]||""}</td>
-                <td>${row["Company Placed"]||""}</td>
-                <td>${row["Role"]||""}</td>
-                <td>${row["Salary package"]||""}</td>
-            </tr>
-            `;
-        });
-
-        document.getElementById("tableBody").innerHTML = html;
-
-        document.getElementById("offers").innerText = totalOffers;
-        document.getElementById("placed").innerText = students.size;
-    }
+batches.forEach(v=>{
+if(v){
+document.getElementById(
+"batchFilter"
+).innerHTML +=
+`<option value="${v}">
+${v}
+</option>`;
+}
 });
 
-</script>
+branches.forEach(v=>{
+if(v){
+document.getElementById(
+"branchFilter"
+).innerHTML +=
+`<option value="${v}">
+${v}
+</option>`;
+}
+});
 
-</body>
-</html>
+companies.forEach(v=>{
+if(v){
+document.getElementById(
+"companyFilter"
+).innerHTML +=
+`<option value="${v}">
+${v}
+</option>`;
+}
+});
+
+}
+
+});
+
+function loadTable(data){
+
+let html="";
+let students=new Set();
+
+data.forEach(row=>{
+
+students.add(
+row["Roll Number"]
+);
+
+html += `
+<tr>
+<td>${row["Roll Number"]||""}</td>
+<td>${row["Batch"]||""}</td>
+<td>${row["Name"]||""}</td>
+<td>${row["Gender"]||""}</td>
+<td>${row["Branch"]||""}</td>
+<td>${row["Company Placed"]||""}</td>
+<td>${row["Role"]||""}</td>
+<td>${row["Salary package"]||""}</td>
+</tr>
+`;
+
+});
+
+document.getElementById(
+"tableBody"
+).innerHTML = html;
+
+document.getElementById(
+"offers"
+).innerText = data.length;
+
+document.getElementById(
+"placed"
+).innerText = students.size;
+
+}
+
+function applyFilters(){
+
+let search =
+document.getElementById(
+"searchBox"
+).value.toLowerCase();
+
+let batch =
+document.getElementById(
+"batchFilter"
+).value;
+
+let branch =
+document.getElementById(
+"branchFilter"
+).value;
+
+let company =
+document.getElementById(
+"companyFilter"
+).value;
+
+let filtered =
+allData.filter(row=>{
+
+let matchSearch =
+JSON.stringify(row)
+.toLowerCase()
+.includes(search);
+
+let matchBatch =
+!batch ||
+row["Batch"]===batch;
+
+let matchBranch =
+!branch ||
+row["Branch"]===branch;
+
+let matchCompany =
+!company ||
+row["Company Placed"]===company;
+
+return matchSearch &&
+matchBatch &&
+matchBranch &&
+matchCompany;
+
+});
+
+loadTable(filtered);
+
+}
+
+document.getElementById(
+"searchBox"
+).addEventListener(
+"keyup",
+applyFilters
+);
+
+document.getElementById(
+"batchFilter"
+).addEventListener(
+"change",
+applyFilters
+);
+
+document.getElementById(
+"branchFilter"
+).addEventListener(
+"change",
+applyFilters
+);
+
+document.getElementById(
+"companyFilter"
+).addEventListener(
+"change",
+applyFilters
+);
+
+</script>
