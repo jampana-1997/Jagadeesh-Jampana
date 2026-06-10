@@ -1,208 +1,128 @@
-<div class="filters">
-
-<input type="text" id="searchBox"
-placeholder="Search Student / Roll / Company">
-
-<select id="batchFilter">
-<option value="">All Batches</option>
-</select>
-
-<select id="branchFilter">
-<option value="">All Branches</option>
-</select>
-
-<select id="companyFilter">
-<option value="">All Companies</option>
-</select>
-
-</div>
-
-<script>
-
-const csvUrl =
-"https://docs.google.com/spreadsheets/d/1w-EYhI3uYZABT87dHevtem6XYpDHS4tX/export?format=csv";
-
-let allData=[];
+let allData = [];
 
 Papa.parse(csvUrl,{
-download:true,
-header:true,
+    download:true,
+    header:true,
 
-complete:function(results){
+    complete:function(results){
 
-allData = results.data.filter(
-row => row["Roll Number"]
-);
+        allData = results.data.filter(
+            row => row["Roll Number"]
+        );
 
-loadTable(allData);
+        loadTable(allData);
 
-let batches =
-[...new Set(allData.map(r=>r["Batch"]))];
+        let batches = [...new Set(allData.map(r => r["Batch"]))];
+        let branches = [...new Set(allData.map(r => r["Branch"]))];
+        let companies = [...new Set(allData.map(r => r["Company Placed"]))];
 
-let branches =
-[...new Set(allData.map(r=>r["Branch"]))];
+        batches.forEach(v=>{
+            if(v)
+            batchFilter.innerHTML +=
+            `<option value="${v}">${v}</option>`;
+        });
 
-let companies =
-[...new Set(allData.map(
-r=>r["Company Placed"]
-))];
+        branches.forEach(v=>{
+            if(v)
+            branchFilter.innerHTML +=
+            `<option value="${v}">${v}</option>`;
+        });
 
-batches.forEach(v=>{
-if(v){
-document.getElementById(
-"batchFilter"
-).innerHTML +=
-`<option value="${v}">
-${v}
-</option>`;
-}
-});
-
-branches.forEach(v=>{
-if(v){
-document.getElementById(
-"branchFilter"
-).innerHTML +=
-`<option value="${v}">
-${v}
-</option>`;
-}
-});
-
-companies.forEach(v=>{
-if(v){
-document.getElementById(
-"companyFilter"
-).innerHTML +=
-`<option value="${v}">
-${v}
-</option>`;
-}
-});
-
-}
-
+        companies.forEach(v=>{
+            if(v)
+            companyFilter.innerHTML +=
+            `<option value="${v}">${v}</option>`;
+        });
+    }
 });
 
 function loadTable(data){
 
-let html="";
-let students=new Set();
+    let html="";
+    let students=new Set();
 
-data.forEach(row=>{
+    data.forEach(row=>{
 
-students.add(
-row["Roll Number"]
-);
+        students.add(row["Roll Number"]);
 
-html += `
-<tr>
-<td>${row["Roll Number"]||""}</td>
-<td>${row["Batch"]||""}</td>
-<td>${row["Name"]||""}</td>
-<td>${row["Gender"]||""}</td>
-<td>${row["Branch"]||""}</td>
-<td>${row["Company Placed"]||""}</td>
-<td>${row["Role"]||""}</td>
-<td>${row["Salary package"]||""}</td>
-</tr>
-`;
+        html += `
+        <tr>
+            <td>${row["Roll Number"]||""}</td>
+            <td>${row["Batch"]||""}</td>
+            <td>${row["Name"]||""}</td>
+            <td>${row["Gender"]||""}</td>
+            <td>${row["Branch"]||""}</td>
+            <td>${row["Company Placed"]||""}</td>
+            <td>${row["Role"]||""}</td>
+            <td>${row["Salary package"]||""}</td>
+        </tr>`;
+    });
 
-});
+    tableBody.innerHTML = html;
 
-document.getElementById(
-"tableBody"
-).innerHTML = html;
-
-document.getElementById(
-"offers"
-).innerText = data.length;
-
-document.getElementById(
-"placed"
-).innerText = students.size;
-
+    offers.innerText = data.length;
+    placed.innerText = students.size;
 }
 
 function applyFilters(){
 
-let search =
-document.getElementById(
-"searchBox"
-).value.toLowerCase();
+    let search =
+    searchBox.value.toLowerCase();
 
-let batch =
-document.getElementById(
-"batchFilter"
-).value;
+    let batch =
+    batchFilter.value;
 
-let branch =
-document.getElementById(
-"branchFilter"
-).value;
+    let branch =
+    branchFilter.value;
 
-let company =
-document.getElementById(
-"companyFilter"
-).value;
+    let company =
+    companyFilter.value;
 
-let filtered =
-allData.filter(row=>{
+    let filtered =
+    allData.filter(row=>{
 
-let matchSearch =
-JSON.stringify(row)
-.toLowerCase()
-.includes(search);
+        let matchSearch =
+        JSON.stringify(row)
+        .toLowerCase()
+        .includes(search);
 
-let matchBatch =
-!batch ||
-row["Batch"]===batch;
+        let matchBatch =
+        !batch ||
+        row["Batch"]===batch;
 
-let matchBranch =
-!branch ||
-row["Branch"]===branch;
+        let matchBranch =
+        !branch ||
+        row["Branch"]===branch;
 
-let matchCompany =
-!company ||
-row["Company Placed"]===company;
+        let matchCompany =
+        !company ||
+        row["Company Placed"]===company;
 
-return matchSearch &&
-matchBatch &&
-matchBranch &&
-matchCompany;
+        return matchSearch &&
+               matchBatch &&
+               matchBranch &&
+               matchCompany;
+    });
 
-});
-
-loadTable(filtered);
-
+    loadTable(filtered);
 }
 
-document.getElementById(
-"searchBox"
-).addEventListener(
+searchBox.addEventListener(
 "keyup",
 applyFilters
 );
 
-document.getElementById(
-"batchFilter"
-).addEventListener(
+batchFilter.addEventListener(
 "change",
 applyFilters
 );
 
-document.getElementById(
-"branchFilter"
-).addEventListener(
+branchFilter.addEventListener(
 "change",
 applyFilters
 );
 
-document.getElementById(
-"companyFilter"
-).addEventListener(
+companyFilter.addEventListener(
 "change",
 applyFilters
 );
-
-</script>
