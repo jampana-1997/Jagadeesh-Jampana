@@ -5,128 +5,118 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MGIT Placement Records</title>
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
-
 <style>
-
 body{
-margin:0;
-font-family:Arial,sans-serif;
-background:#f5f7fa;
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#f5f7fa;
 }
 
 .header{
-background:#0a2342;
-color:white;
-text-align:center;
-padding:20px;
+    background:#0a2342;
+    color:white;
+    text-align:center;
+    padding:20px;
 }
 
 .header h1{
-margin:0;
-font-size:42px;
+    margin:0;
+    font-size:42px;
 }
 
 .header h3{
-margin-top:8px;
-color:#90ee90;
+    color:#90EE90;
 }
 
 .stats{
-display:flex;
-justify-content:center;
-gap:50px;
-background:#0b7d3b;
-color:white;
-padding:12px;
-font-size:24px;
-font-weight:bold;
+    background:#0B7D3B;
+    color:white;
+    display:flex;
+    justify-content:center;
+    gap:80px;
+    padding:15px;
+    font-size:24px;
+    font-weight:bold;
 }
 
 .filters{
-padding:15px;
-display:flex;
-flex-wrap:wrap;
-gap:10px;
-background:#10294f;
+    background:#10294F;
+    padding:15px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
 }
 
 .filters input,
 .filters select{
-padding:10px;
-border:none;
-border-radius:5px;
+    padding:10px;
+    border:none;
+    border-radius:5px;
+    min-width:180px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th{
+    background:#10294F;
+    color:white;
+    padding:10px;
+}
+
+td{
+    padding:8px;
+    border:1px solid #ddd;
 }
 
 .container{
-padding:15px;
+    padding:15px;
+    overflow:auto;
 }
-
-table.dataTable thead{
-background:#10294f;
-color:white;
-}
-
-.dt-buttons{
-margin-bottom:10px;
-}
-
-@media(max-width:768px){
-
-.stats{
-flex-direction:column;
-text-align:center;
-gap:5px;
-}
-
-.filters{
-flex-direction:column;
-}
-
-.filters input,
-.filters select{
-width:100%;
-}
-
-}
-
 </style>
 </head>
 <body>
 
 <div class="header">
-<h1>MGIT Placement Records</h1>
-<h3>Academic Year 2025-2026</h3>
+    <h1>MGIT Placement Records</h1>
+    <h3>Academic Year 2025 - 2026</h3>
 </div>
 
 <div class="stats">
-<div>Total Offers : <span id="offers">0</span></div>
-<div>Total Placed Students : <span id="placed">0</span></div>
+    <div>Total Offers : <span id="offers">0</span></div>
+    <div>Total Placed Students : <span id="placed">0</span></div>
 </div>
 
 <div class="filters">
+    <input type="text" placeholder="Search Student / Roll / Company">
 
-<input type="text" id="searchBox" placeholder="Search Student">
+    <select>
+        <option>All Batches</option>
+    </select>
 
-<select id="batchFilter">
-<option value="">All Batches</option>
-</select>
+    <select>
+        <option>All Branches</option>
+    </select>
 
-<select id="branchFilter">
-<option value="">All Branches</option>
-</select>
+    <select>
+        <option>All Companies</option>
+    </select>
 
-<select id="companyFilter">
-<option value="">All Companies</option>
-</select>
+    <select>
+        <option>Nature of the Company</option>
+    </select>
 
+    <select>
+        <option>Internship Type</option>
+    </select>
 </div>
 
 <div class="container">
-
-<table id="placementTable" class="display nowrap" style="width:100%">
-
+<table>
 <thead>
 <tr>
 <th>Roll Number</th>
@@ -134,30 +124,15 @@ width:100%;
 <th>Name</th>
 <th>Gender</th>
 <th>Branch</th>
-<th>Mobile Number</th>
-<th>Email Id</th>
 <th>Company</th>
 <th>Role</th>
 <th>Package</th>
 </tr>
 </thead>
-
-<tbody></tbody>
-
+<tbody id="tableBody">
+</tbody>
 </table>
-
 </div>
-
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
@@ -167,110 +142,44 @@ const csvUrl =
 "https://docs.google.com/spreadsheets/d/1w-EYhI3uYZABT87dHevtem6XYpDHS4tX/export?format=csv";
 
 Papa.parse(csvUrl,{
+    download:true,
+    header:true,
 
-download:true,
-header:true,
+    complete:function(results){
 
-complete:function(results){
+        let data = results.data;
 
-let data = results.data;
+        let totalOffers = 0;
+        let students = new Set();
 
-let rows = "";
+        let html = "";
 
-let totalOffers = 0;
-let uniqueStudents = new Set();
+        data.forEach(row=>{
 
-let batchSet = new Set();
-let branchSet = new Set();
-let companySet = new Set();
+            if(!row["Roll Number"]) return;
 
-data.forEach(r=>{
+            totalOffers++;
+            students.add(row["Roll Number"]);
 
-if(!r["Roll Number"]) return;
+            html += `
+            <tr>
+                <td>${row["Roll Number"]||""}</td>
+                <td>${row["Batch"]||""}</td>
+                <td>${row["Name"]||""}</td>
+                <td>${row["Gender"]||""}</td>
+                <td>${row["Branch"]||""}</td>
+                <td>${row["Company Placed"]||""}</td>
+                <td>${row["Role"]||""}</td>
+                <td>${row["Salary package"]||""}</td>
+            </tr>
+            `;
+        });
 
-totalOffers++;
-uniqueStudents.add(r["Roll Number"]);
+        document.getElementById("tableBody").innerHTML = html;
 
-batchSet.add(r["Batch"]);
-branchSet.add(r["Branch"]);
-companySet.add(r["Company Placed"]);
-
-rows += `
-<tr>
-<td>${r["Roll Number"]||""}</td>
-<td>${r["Batch"]||""}</td>
-<td>${r["Name"]||""}</td>
-<td>${r["Gender"]||""}</td>
-<td>${r["Branch"]||""}</td>
-<td>${r["Mobile Number"]||""}</td>
-<td>${r["Email Id"]||""}</td>
-<td>${r["Company Placed"]||""}</td>
-<td>${r["Role"]||""}</td>
-<td>${r["Salary package"]||""}</td>
-</tr>
-`;
-
-});
-
-document.querySelector("#placementTable tbody").innerHTML = rows;
-
-document.getElementById("offers").innerText = totalOffers;
-document.getElementById("placed").innerText = uniqueStudents.size;
-
-batchSet.forEach(v=>{
-if(v)
-document.getElementById("batchFilter").innerHTML +=
-`<option value="${v}">${v}</option>`;
-});
-
-branchSet.forEach(v=>{
-if(v)
-document.getElementById("branchFilter").innerHTML +=
-`<option value="${v}">${v}</option>`;
-});
-
-companySet.forEach(v=>{
-if(v)
-document.getElementById("companyFilter").innerHTML +=
-`<option value="${v}">${v}</option>`;
-});
-
-let table = $("#placementTable").DataTable({
-
-paging:false,
-info:false,
-lengthChange:false,
-scrollX:true,
-
-dom:'Bfrtip',
-
-buttons:[
-'copy',
-'excel',
-'pdf',
-'print'
-]
-
-});
-
-$("#searchBox").on("keyup",function(){
-table.search(this.value).draw();
-});
-
-$("#batchFilter").on("change",function(){
-table.column(1).search(this.value).draw();
-});
-
-$("#branchFilter").on("change",function(){
-table.column(4).search(this.value).draw();
-});
-
-$("#companyFilter").on("change",function(){
-table.column(7).search(this.value).draw();
-});
-
-}
-
+        document.getElementById("offers").innerText = totalOffers;
+        document.getElementById("placed").innerText = students.size;
+    }
 });
 
 </script>
