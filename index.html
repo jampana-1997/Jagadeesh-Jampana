@@ -1,76 +1,111 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Placement Dashboard</title>
+  <title>Placement Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f8ff;
+      padding: 20px;
+    }
 
-<link rel="stylesheet" href="style.css">
+    h1 {
+      color: #0b57d0;
+    }
 
+    .card {
+      display: inline-block;
+      padding: 15px;
+      margin: 10px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #0b57d0;
+      color: white;
+      position: sticky;
+      top: 0;
+    }
+
+    .table-container {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  </style>
 </head>
 
 <body>
 
-<h1>Placement Dashboard</h1>
+<h1>📊 Placement Dashboard</h1>
 
-<div class="filters">
+<div id="stats"></div>
 
-<input type="text" id="searchBox" placeholder="Search">
-
-<select id="batchFilter">
-<option value="">Batch</option>
-</select>
-
-<select id="branchFilter">
-<option value="">Branch</option>
-</select>
-
-<select id="companyFilter">
-<option value="">Company</option>
-</select>
-
+<div class="table-container">
+  <table id="table">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
 </div>
 
-<div class="dashboard">
+<script>
 
-<div class="card">
-<h3>Total Students</h3>
-<h1 id="placed">0</h1>
-</div>
+const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRIwfuJU43o5Ee3hlt_3EmXzOu0rsTIzJKxkCEAuwDNmmhshgeBMZFoEp9YPZYnkTEzUoQ8BEBx93yq/pub?gid=1181255206&single=true&output=csv";
 
-<div class="card">
-<h3>Total Offers</h3>
-<h1 id="offers">0</h1>
-</div>
+let allData = [];
 
-</div>
+Papa.parse(url, {
+  download: true,
+  header: true,
+  complete: function(results) {
+    allData = results.data;
 
-<div class="chart-box">
-<canvas id="branchChart"></canvas>
-</div>
+    console.log(allData);
 
-<table>
+    renderStats();
+    renderTable();
+  }
+});
 
-<thead>
+function renderStats() {
+  let total = allData.length;
 
-<tr>
-<th>Roll Number</th>
-<th>Batch</th>
-<th>Name</th>
-<th>Branch</th>
-<th>Company</th>
-<th>Package</th>
-</tr>
+  document.getElementById("stats").innerHTML = `
+    <div class="card">Total Students: ${total}</div>
+  `;
+}
 
-</thead>
+function renderTable() {
+  let table = document.getElementById("table");
 
-<tbody id="tableBody">
-</tbody>
+  let headers = Object.keys(allData[0]);
 
-</table>
+  table.querySelector("thead").innerHTML =
+    "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
 
-<script src="script.js"></script>
+  table.querySelector("tbody").innerHTML =
+    allData.map(row =>
+      "<tr>" + headers.map(h => `<td>${row[h] || ""}</td>`).join("") + "</tr>"
+    ).join("");
+}
+
+</script>
 
 </body>
 </html>
