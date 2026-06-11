@@ -91,14 +91,13 @@ gap:10px;
 
 <body>
 
-<div id="loginBox" class="login">
-<h2>Login</h2>
+<div id="loginBox" class="login" style="display:none;">
 <input type="text" id="username" placeholder="Username">
 <input type="password" id="password" placeholder="Password">
 <button onclick="login()">Login</button>
 </div>
 
-<div id="dashboard" class="dashboard">
+<div id="dashboard" class="dashboard" style="display:block;">
 
 <div class="header">
 Training & Placement Dashboard
@@ -149,17 +148,18 @@ let allData=[];
 
 function login(){
 
-if(
-document.getElementById("username").value==="admin"
-&&
-document.getElementById("password").value==="admin123"
-){
-document.getElementById("loginBox").style.display="none";
-document.getElementById("dashboard").style.display="block";
+const user = document.getElementById("username").value.trim();
+const pass = document.getElementById("password").value.trim();
+
+if(user === "admin" && pass === "admin123"){
+
+document.getElementById("loginBox").style.display = "none";
+document.getElementById("dashboard").style.display = "block";
+
 loadData();
-}
-else{
-alert("Invalid Login");
+
+}else{
+alert("Invalid Username or Password");
 }
 
 }
@@ -277,29 +277,36 @@ document.getElementById("genderFilter").onchange=filterTable;
 document.getElementById("batchFilter").onchange=filterTable;
 
 }
+window.onload = function () {
+    loadData();
+};
 
 function filterTable(){
 
-let branch=document.getElementById("branchFilter").value;
-let gender=document.getElementById("genderFilter").value;
-let batch=document.getElementById("batchFilter").value;
-let search=document.getElementById("searchBox").value.toLowerCase();
+    let branch = document.getElementById("branchFilter").value;
+    let gender = document.getElementById("genderFilter").value;
+    let batch = document.getElementById("batchFilter").value;
+    let search = document.getElementById("searchBox").value.toLowerCase();
 
-let filtered=allData.filter(row=>{
+    let filtered = allData.filter(row => {
 
-let b=!branch || row["Branch"]===branch;
-let g=!gender || row["Gender"]===gender;
-let bt=!batch || row["Batch Name"]===batch;
+        let b = !branch || row["Branch"] === branch;
+        let g = !gender || row["Gender"] === gender;
+        let bt = !batch || row["Batch Name"] === batch;
 
-let s=JSON.stringify(row).toLowerCase().includes(search);
+        let s = JSON.stringify(row).toLowerCase().includes(search);
 
-return b && g && bt && s;
+        return b && g && bt && s;
 
-});
+    });
 
-buildTable(filtered);
+   buildTable(filtered);
 
 }
+
+window.onload = function(){
+    loadData();
+};
 </script>
 
 </body>
