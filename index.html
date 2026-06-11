@@ -1,313 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Placement Dashboard</title>
+    <title>Training & Placement Dashboard</title>
 
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
 
-<style>
-body{
-font-family:Arial;
-margin:0;
-background:#0f172a;
-color:white;
-}
-
-.header{
-background:#1e293b;
-padding:15px;
-font-size:24px;
-font-weight:bold;
-}
-
-.login{
-width:300px;
-margin:100px auto;
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-}
-
-input,select{
-width:100%;
-padding:10px;
-margin:5px 0;
-}
-
-button{
-padding:10px;
-width:100%;
-background:#2563eb;
-color:white;
-border:none;
-cursor:pointer;
-}
-
-.dashboard{
-display:none;
-padding:20px;
-}
-
-.cards{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:15px;
-margin-bottom:20px;
-}
-
-.card{
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-text-align:center;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-background:white;
-color:black;
-}
-
-th,td{
-border:1px solid #ddd;
-padding:8px;
-}
-
-th{
-background:#2563eb;
-color:white;
-}
-
-.filters{
-margin-bottom:15px;
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:10px;
-}
-</style>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
-
 <body>
 
-<div id="loginBox" class="login" style="display:none;">
-<input type="text" id="username" placeholder="Username">
-<input type="password" id="password" placeholder="Password">
-<button onclick="login()">Login</button>
-</div>
-
-<div id="dashboard" class="dashboard" style="display:block;">
-
 <div class="header">
-Training & Placement Dashboard
+    Training & Placement Dashboard
 </div>
 
 <div class="cards">
-<div class="card">
-<h2 id="students">0</h2>
-Total Students
-</div>
+    <div class="card">
+        <h2 id="students">0</h2>
+        <p>Total Students</p>
+    </div>
 
-<div class="card">
-<h2 id="companies">0</h2>
-Companies
-</div>
+    <div class="card">
+        <h2 id="companies">0</h2>
+        <p>Companies</p>
+    </div>
 
-<div class="card">
-<h2 id="offers">0</h2>
-Offers
-</div>
+    <div class="card">
+        <h2 id="offers">0</h2>
+        <p>Offers</p>
+    </div>
 
-<div class="card">
-<h2 id="highest">0</h2>
-Highest Package
-</div>
+    <div class="card">
+        <h2 id="highest">0</h2>
+        <p>Highest Package</p>
+    </div>
 </div>
 
 <div class="filters">
-<select id="branchFilter"></select>
-<select id="genderFilter"></select>
-<select id="batchFilter"></select>
-<input type="text" id="searchBox" placeholder="Search..." onkeyup="filterTable()">
+    <select id="branchFilter"></select>
+    <select id="genderFilter"></select>
+    <select id="batchFilter"></select>
+
+    <input type="text"
+           id="searchBox"
+           placeholder="Search..."
+           onkeyup="filterTable()">
 </div>
 
 <table>
-<thead id="thead"></thead>
-<tbody id="tbody"></tbody>
+    <thead id="thead"></thead>
+    <tbody id="tbody"></tbody>
 </table>
 
-</div>
-
-<script>
-
-const CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vRIwfuJU43o5Ee3hlt_3EmXzOu0rsTIzJKxkCEAuwDNmmhshgeBMZFoEp9YPZYnkTEzUoQ8BEBx93yq/pub?gid=1181255206&single=true&output=csv";
-
-let allData=[];
-
-function login(){
-
-const user = document.getElementById("username").value.trim();
-const pass = document.getElementById("password").value.trim();
-
-if(user === "admin" && pass === "admin123"){
-
-document.getElementById("loginBox").style.display = "none";
-document.getElementById("dashboard").style.display = "block";
-
-loadData();
-
-}else{
-alert("Invalid Username or Password");
-}
-
-}
-
-function loadData(){
-
-Papa.parse(CSV_URL,{
-download:true,
-header:true,
-skipEmptyLines:true,
-
-complete:function(result){
-
-console.log(result.data);
-
-allData = result.data.filter(row =>
-Object.values(row).some(value =>
-value && value.toString().trim() !== ""
-)
-);
-
-if(allData.length===0){
-alert("No data found in CSV");
-return;
-}
-
-buildTable(allData);
-buildFilters();
-
-document.getElementById("students").innerHTML=allData.length;
-
-let companies=[...new Set(
-allData.map(x=>x["Company Placed"]).filter(Boolean)
-)];
-
-document.getElementById("companies").innerHTML=companies.length;
-
-document.getElementById("offers").innerHTML=allData.length;
-
-let max=0;
-
-allData.forEach(r=>{
-
-let packageValue =
-parseFloat(
-String(r["Salary Package"]||"")
-.replace(/[^\d.]/g,'')
-) || 0;
-
-if(packageValue>max){
-max=packageValue;
-}
-
-});
-
-document.getElementById("highest").innerHTML=max;
-
-}
-
-});
-
-}
-function buildTable(data){
-
-if(data.length===0){
-document.getElementById("tbody").innerHTML="";
-return;
-}
-
-let cols=Object.keys(data[0]);
-
-document.getElementById("thead").innerHTML=
-"<tr>"+cols.map(c=>"<th>"+c+"</th>").join("")+"</tr>";
-
-document.getElementById("tbody").innerHTML=
-data.map(row=>
-"<tr>"+
-cols.map(c=>{
-
-if(c==="Offer Letter" || c==="Internship Letter"){
-let link=row[c];
-if(link){
-return `<td><a href="${link}" target="_blank">View</a></td>`;
-}
-}
-
-return "<td>"+(row[c]||"")+"</td>";
-
-}).join("")
-+"</tr>"
-).join("");
-
-}
-
-function buildFilters(){
-
-let branches=[...new Set(allData.map(x=>x["Branch"]).filter(Boolean))];
-let genders=[...new Set(allData.map(x=>x["Gender"]).filter(Boolean))];
-let batches=[...new Set(allData.map(x=>x["Batch Name"]).filter(Boolean))];
-
-document.getElementById("branchFilter").innerHTML=
-'<option value="">All Branches</option>'+
-branches.map(x=>`<option value="${x}">${x}</option>`).join('');
-
-document.getElementById("genderFilter").innerHTML=
-'<option value="">All Gender</option>'+
-genders.map(x=>`<option value="${x}">${x}</option>`).join('');
-
-document.getElementById("batchFilter").innerHTML=
-'<option value="">All Batch</option>'+
-batches.map(x=>`<option value="${x}">${x}</option>`).join('');
-
-document.getElementById("branchFilter").onchange=filterTable;
-document.getElementById("genderFilter").onchange=filterTable;
-document.getElementById("batchFilter").onchange=filterTable;
-
-}
-window.onload = function () {
-    loadData();
-};
-
-function filterTable(){
-
-    let branch = document.getElementById("branchFilter").value;
-    let gender = document.getElementById("genderFilter").value;
-    let batch = document.getElementById("batchFilter").value;
-    let search = document.getElementById("searchBox").value.toLowerCase();
-
-    let filtered = allData.filter(row => {
-
-        let b = !branch || row["Branch"] === branch;
-        let g = !gender || row["Gender"] === gender;
-        let bt = !batch || row["Batch Name"] === batch;
-
-        let s = JSON.stringify(row).toLowerCase().includes(search);
-
-        return b && g && bt && s;
-
-    });
-
-   buildTable(filtered);
-
-}
-
-window.onload = function(){
-    loadData();
-};
-</script>
+<script src="js/app.js"></script>
 
 </body>
 </html>
