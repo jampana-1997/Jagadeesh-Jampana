@@ -1,63 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>T&P Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Placement Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 body{
 font-family:Arial,sans-serif;
-background:#f4f6f9;
 margin:0;
+background:#f5f7fa;
 }
 
 .header{
-background:#003366;
+background:#0f172a;
 color:white;
-padding:20px;
+padding:15px;
 text-align:center;
+font-size:28px;
+font-weight:bold;
 }
 
-.dashboard{
+.filters{
 display:flex;
-gap:20px;
-padding:20px;
 flex-wrap:wrap;
+gap:10px;
+padding:15px;
+background:white;
+box-shadow:0 2px 5px rgba(0,0,0,.1);
+}
+
+select,input{
+padding:8px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;
+padding:15px;
 }
 
 .card{
 background:white;
 padding:20px;
 border-radius:10px;
-box-shadow:0 2px 8px rgba(0,0,0,0.1);
-flex:1;
-min-width:220px;
 text-align:center;
+box-shadow:0 2px 5px rgba(0,0,0,.1);
 }
 
 .card h2{
 margin:0;
-color:#003366;
-}
-
-.card p{
-font-size:30px;
-font-weight:bold;
-color:#0066cc;
-}
-
-.controls{
-padding:20px;
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-}
-
-input,select{
-padding:10px;
-border:1px solid #ccc;
-border-radius:5px;
+color:#2563eb;
 }
 
 table{
@@ -66,21 +64,20 @@ border-collapse:collapse;
 background:white;
 }
 
-th,td{
-border:1px solid #ddd;
-padding:10px;
-text-align:left;
-}
-
 th{
-background:#003366;
+background:#2563eb;
 color:white;
-position:sticky;
-top:0;
+padding:10px;
 }
 
-tr:nth-child(even){
-background:#f9f9f9;
+td{
+padding:8px;
+border:1px solid #ddd;
+}
+
+.container{
+padding:15px;
+overflow:auto;
 }
 </style>
 </head>
@@ -88,111 +85,193 @@ background:#f9f9f9;
 <body>
 
 <div class="header">
-<h1>TRAINING & PLACEMENT CELL DASHBOARD</h1>
+Student Placement Dashboard
 </div>
 
-<div class="dashboard">
-
+<div class="cards">
 <div class="card">
-<h2>Total Students</h2>
-<p id="students">0</p>
-</div>
-
-<div class="card">
-<h2>Offer Letters</h2>
-<p id="offers">0</p>
+<h2 id="totalStudents">0</h2>
+<p>Total Students</p>
 </div>
 
 <div class="card">
-<h2>Companies</h2>
-<p id="companies">0</p>
+<h2 id="placedStudents">0</h2>
+<p>Placed Students</p>
 </div>
 
+<div class="card">
+<h2 id="companies">0</h2>
+<p>Companies</p>
 </div>
 
-<div class="controls">
-<input type="text" id="searchBox" placeholder="Search..." onkeyup="filterTable()">
+<div class="card">
+<h2 id="highestPackage">0</h2>
+<p>Highest Package</p>
+</div>
+</div>
 
-<select id="statusFilter" onchange="filterTable()">
-<option value="">All</option>
-<option value="Selected">Selected</option>
-<option value="Not Selected">Not Selected</option>
+<div class="filters">
+<input type="text" id="search" placeholder="Search Student">
+
+<select id="branchFilter">
+<option value="">All Branches</option>
+</select>
+
+<select id="companyFilter">
+<option value="">All Companies</option>
+</select>
+
+<select id="batchFilter">
+<option value="">All Batches</option>
 </select>
 </div>
 
+<div class="container">
 <table id="dataTable">
-<thead>
-<tr id="tableHead"></tr>
-</thead>
-<tbody id="tableBody"></tbody>
+<thead></thead>
+<tbody></tbody>
 </table>
+</div>
 
 <script>
 
-// PUBLISH TO WEB CSV URL
 const csvUrl =
-"https://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/gviz/tq?tqx=out:csv";
+"https://docs.google.com/spreadsheets/d/1wB72mFM70AToOAfPmAJepm9IR8HH0lV4M2sVsap3ZnM/export?format=csv";
 
-fetch(csvUrl)
-.then(res => res.text())
-.then(data => {
+let allData=[];
 
-let rows = data.trim().split("\n").map(r=>r.split(","));
+Papa.parse(csvUrl,{
+download:true,
+header:true,
+complete:function(results){
 
-let headers = rows[0];
+allData=results.data;
 
-let headHtml = "";
+createFilters();
+renderTable(allData);
+updateCards(allData);
+
+}
+});
+
+function createFilters(){
+
+let branches=[...new Set(allData.map(x=>x.Branch))];
+let companies=[...new Set(allData.map(x=>x.Company))];
+let batches=[...new Set(allData.map(x=>x.Batch))];
+
+branches.forEach(v=>{
+if(v){
+branchFilter.innerHTML+=`<option>${v}</option>`;
+}
+});
+
+companies.forEach(v=>{
+if(v){
+companyFilter.innerHTML+=`<option>${v}</option>`;
+}
+});
+
+batches.forEach(v=>{
+if(v){
+batchFilter.innerHTML+=`<option>${v}</option>`;
+}
+});
+
+}
+
+function renderTable(data){
+
+if(data.length==0) return;
+
+let headers=Object.keys(data[0]);
+
+let thead="<tr>";
 
 headers.forEach(h=>{
-headHtml += `<th>${h.replace(/"/g,"")}</th>`;
+thead+=`<th>${h}</th>`;
 });
 
-document.getElementById("tableHead").innerHTML = headHtml;
+thead+="</tr>";
 
-let bodyHtml = "";
+document.querySelector("#dataTable thead").innerHTML=thead;
 
-for(let i=1;i<rows.length;i++){
+let rows="";
 
-bodyHtml += "<tr>";
+data.forEach(row=>{
 
-rows[i].forEach(col=>{
-bodyHtml += `<td>${col.replace(/"/g,"")}</td>`;
+rows+="<tr>";
+
+headers.forEach(h=>{
+rows+=`<td>${row[h]||''}</td>`;
 });
 
-bodyHtml += "</tr>";
-}
-
-document.getElementById("tableBody").innerHTML = bodyHtml;
-
-document.getElementById("students").innerText = rows.length-1;
-
-})
-.catch(err=>console.log(err));
-
-function filterTable(){
-
-let input =
-document.getElementById("searchBox")
-.value.toUpperCase();
-
-let tr =
-document.querySelectorAll("#tableBody tr");
-
-tr.forEach(row=>{
-
-let txt =
-row.innerText.toUpperCase();
-
-if(txt.indexOf(input)>-1){
-row.style.display="";
-}
-else{
-row.style.display="none";
-}
+rows+="</tr>";
 
 });
 
+document.querySelector("#dataTable tbody").innerHTML=rows;
 }
+
+function updateCards(data){
+
+document.getElementById("totalStudents").innerText=data.length;
+
+document.getElementById("placedStudents").innerText=data.filter(
+x=>x.Company && x.Company!=""
+).length;
+
+let companies=[...new Set(data.map(x=>x.Company).filter(Boolean))];
+
+document.getElementById("companies").innerText=companies.length;
+
+let maxPackage=Math.max(
+...data.map(x=>parseFloat(x["Salary package"])||0)
+);
+
+document.getElementById("highestPackage").innerText=maxPackage;
+}
+
+function applyFilters(){
+
+let search=document.getElementById("search").value.toLowerCase();
+
+let branch=document.getElementById("branchFilter").value;
+
+let company=document.getElementById("companyFilter").value;
+
+let batch=document.getElementById("batchFilter").value;
+
+let filtered=allData.filter(row=>{
+
+let matchSearch=
+JSON.stringify(row).toLowerCase().includes(search);
+
+let matchBranch=
+!branch || row.Branch==branch;
+
+let matchCompany=
+!company || row.Company==company;
+
+let matchBatch=
+!batch || row.Batch==batch;
+
+return matchSearch &&
+matchBranch &&
+matchCompany &&
+matchBatch;
+
+});
+
+renderTable(filtered);
+updateCards(filtered);
+
+}
+
+search.addEventListener("input",applyFilters);
+branchFilter.addEventListener("change",applyFilters);
+companyFilter.addEventListener("change",applyFilters);
+batchFilter.addEventListener("change",applyFilters);
 
 </script>
 
