@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -9,48 +10,54 @@
 <style>
 
 body{
+
 font-family:Arial,sans-serif;
 text-align:center;
 background:#f5f5f5;
+
 }
 
 h1{
+
 margin:20px;
+
 }
 
 table{
+
 margin:auto;
 border-collapse:collapse;
 background:white;
+
 }
 
 th,td{
 
-border:1px solid #000;
-padding:10px;
-min-width:90px;
+border:1px solid black;
+padding:12px;
+min-width:100px;
 text-align:center;
 
 }
 
 th{
 
-background:yellow;
+background:#ffff00;
 
 }
 
 .total{
 
-font-size:28px;
+background:#ffff00;
+font-size:32px;
 font-weight:bold;
-background:yellow;
 
 }
 
 .red{
 
 background:red !important;
-color:white;
+color:white !important;
 
 }
 
@@ -66,15 +73,17 @@ color:white;
 
 <script>
 
-const csvUrl =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vSDqXx9kHrTNf-SQLWwgLO4igXPZIGzuXkiFKIyHBPUe9EFsCfrVWvVZCupxEzCWtnSeVDBlUEGytOe/pub?output=csv";
+const csvUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vSDqXx9kHrTNf-SQLWwgLO4igXPZIGzuXkiFKIyHBPUe9EFsCfrVWvVZCupxEzCWtnSeVDBlUEGytOe/pub?output=csv";
 
 fetch(csvUrl)
-.then(res=>res.text())
-.then(csv=>{
 
-const rows = csv.trim().split("\n")
-.map(r => r.split(","));
+.then(response=>response.text())
+
+.then(data=>{
+
+let rows=data.trim().split("\n")
+
+.map(r=>r.split(","));
 
 let html="<table>";
 
@@ -84,28 +93,40 @@ html+="<tr>";
 
 for(let j=0;j<rows[i].length;j++){
 
-let value=rows[i][j];
+let value=rows[i][j].trim();
 
 if(i==0){
 
-let score=Number(value);
+let score=parseInt(value);
 
 if(!isNaN(score) && score>=200){
 
 html+=`
+
 <td class="total red">
+
 ${score}
+
 <br>
+
 ELIMINATED
+
 </td>
+
 `;
 
-}else{
+}
+
+else{
 
 html+=`
+
 <td class="total">
+
 ${value}
+
 </td>
+
 `;
 
 }
@@ -114,22 +135,36 @@ ${value}
 
 else if(i==1){
 
-let score=Number(rows[0][j]);
+let score=parseInt(rows[0][j]);
 
 if(!isNaN(score) && score>=200){
 
 html+=`
+
 <th class="red">
+
 ${value}
+
+<br>
+
+ELIMINATED
+
 </th>
+
 `;
 
-}else{
+}
+
+else{
 
 html+=`
+
 <th>
+
 ${value}
+
 </th>
+
 `;
 
 }
@@ -139,9 +174,13 @@ ${value}
 else{
 
 html+=`
+
 <td>
+
 ${value}
+
 </td>
+
 `;
 
 }
@@ -156,9 +195,16 @@ html+="</table>";
 
 document.getElementById("table").innerHTML=html;
 
+})
+
+.catch(err=>{
+
+document.getElementById("table").innerHTML="Error Loading Data";
+
 });
 
 </script>
 
 </body>
+
 </html>
