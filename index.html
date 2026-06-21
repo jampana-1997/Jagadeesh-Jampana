@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>Rummy Score</title>
 
@@ -47,9 +47,9 @@ background:yellow;
 
 }
 
-.eliminated{
+.red{
 
-background:red;
+background:red !important;
 color:white;
 
 }
@@ -73,8 +73,8 @@ fetch(csvUrl)
 .then(res=>res.text())
 .then(csv=>{
 
-const rows=csv.trim().split("\n")
-.map(r=>r.split(","));
+const rows = csv.trim().split("\n")
+.map(r => r.split(","));
 
 let html="<table>";
 
@@ -88,29 +88,61 @@ let value=rows[i][j];
 
 if(i==0){
 
-let cls="total";
+let score=Number(value);
 
-if(!isNaN(value)&&Number(value)>=200){
+if(!isNaN(score) && score>=200){
 
-cls+=" eliminated";
+html+=`
+<td class="total red">
+${score}
+<br>
+ELIMINATED
+</td>
+`;
 
-value+="<br>ELIMINATED";
+}else{
+
+html+=`
+<td class="total">
+${value}
+</td>
+`;
 
 }
-
-html+=`<td class="${cls}">${value}</td>`;
 
 }
 
 else if(i==1){
 
-html+=`<th>${value}</th>`;
+let score=Number(rows[0][j]);
+
+if(!isNaN(score) && score>=200){
+
+html+=`
+<th class="red">
+${value}
+</th>
+`;
+
+}else{
+
+html+=`
+<th>
+${value}
+</th>
+`;
+
+}
 
 }
 
 else{
 
-html+=`<td>${value}</td>`;
+html+=`
+<td>
+${value}
+</td>
+`;
 
 }
 
