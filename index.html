@@ -1,89 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Rummy Score</title>
-
-<style>
-
-body{
-
-font-family:Arial,sans-serif;
-text-align:center;
-background:#f5f5f5;
-
-}
-
-h1{
-
-margin:20px;
-
-}
-
-table{
-
-margin:auto;
-border-collapse:collapse;
-background:white;
-
-}
-
-th,td{
-
-border:1px solid black;
-padding:12px;
-min-width:100px;
-text-align:center;
-
-}
-
-th{
-
-background:#ffff00;
-
-}
-
-.total{
-
-background:#ffff00;
-font-size:32px;
-font-weight:bold;
-
-}
-
-.red{
-
-background:red !important;
-color:white !important;
-
-}
-
-</style>
-
-</head>
-
-<body>
-
-<h1>Rummy Score</h1>
-
-<div id="table"></div>
-
 <script>
 
 const csvUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vSDqXx9kHrTNf-SQLWwgLO4igXPZIGzuXkiFKIyHBPUe9EFsCfrVWvVZCupxEzCWtnSeVDBlUEGytOe/pub?output=csv";
 
 fetch(csvUrl)
+.then(res=>res.text())
+.then(csv=>{
 
-.then(response=>response.text())
-
-.then(data=>{
-
-let rows=data.trim().split("\n")
-
-.map(r=>r.split(","));
+const rows=csv.trim().split("\n").map(r=>r.split(","));
 
 let html="<table>";
 
@@ -95,76 +18,63 @@ for(let j=0;j<rows[i].length;j++){
 
 let value=rows[i][j].trim();
 
-if(i==0){
+if(i===0){
 
-let score=parseInt(value);
+let score=parseInt(value)||0;
 
-if(!isNaN(score) && score>=200){
+if(score>=200){
 
 html+=`
-
-<td class="total red">
-
+<td style="
+background:red;
+color:white;
+font-size:30px;
+font-weight:bold;
+">
 ${score}
-
 <br>
-
 ELIMINATED
-
 </td>
+`;
 
+}else{
+
+html+=`
+<td style="
+background:yellow;
+font-size:30px;
+font-weight:bold;
+">
+${score}
+</td>
 `;
 
 }
 
-else{
-
-html+=`
-
-<td class="total">
-
-${value}
-
-</td>
-
-`;
-
 }
 
-}
+else if(i===1){
 
-else if(i==1){
+let score=parseInt(rows[0][j])||0;
 
-let score=parseInt(rows[0][j]);
-
-if(!isNaN(score) && score>=200){
+if(score>=200){
 
 html+=`
-
-<th class="red">
-
+<th style="
+background:red;
+color:white;
+font-weight:bold;
+">
 ${value}
-
-<br>
-
-ELIMINATED
-
 </th>
-
 `;
 
-}
-
-else{
+}else{
 
 html+=`
-
-<th>
-
+<th style="background:yellow">
 ${value}
-
 </th>
-
 `;
 
 }
@@ -173,15 +83,7 @@ ${value}
 
 else{
 
-html+=`
-
-<td>
-
-${value}
-
-</td>
-
-`;
+html+=`<td>${value}</td>`;
 
 }
 
@@ -195,16 +97,6 @@ html+="</table>";
 
 document.getElementById("table").innerHTML=html;
 
-})
-
-.catch(err=>{
-
-document.getElementById("table").innerHTML="Error Loading Data";
-
 });
 
 </script>
-
-</body>
-
-</html>
