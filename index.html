@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Rummy Score</title>
+<title>Jagadeesh Jampana Rummy Score</title>
 
 <style>
 
@@ -64,7 +64,7 @@ margin-top:5px;
 
 <body>
 
-<h1>Rummy Score</h1>
+<h1>Jagadeesh Jampana Rummy Score</h1>
 
 <div id="table"></div>
 
@@ -83,7 +83,7 @@ const rows=csv.trim().split("\n")
 
 const totals=rows[0].map(x=>parseInt(x)||0);
 
-const active=totals.filter(x=>x<200);
+const active=totals.filter(x=>x<201);
 
 const winnerScore=active.length==1 ? active[0] : -1;
 
@@ -105,7 +105,7 @@ if(i==0){
 
 let score=parseInt(value)||0;
 
-if(score>=200){
+if(score>=201){
 
 html+=`
 <td class="total red">
