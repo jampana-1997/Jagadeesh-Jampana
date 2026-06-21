@@ -1,129 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Rummy Score Board</title>
 
-createFilters();
-renderTable(allData);
-updateCards(allData);
+<style>
 
-}
-});
-
-function createFilters(){
-
-let branches=[...new Set(allData.map(x=>x.Branch))];
-let companies=[...new Set(allData.map(x=>x.Company))];
-let batches=[...new Set(allData.map(x=>x.Batch))];
-
-branches.forEach(v=>{
-if(v){
-branchFilter.innerHTML+=`<option>${v}</option>`;
-}
-});
-
-companies.forEach(v=>{
-if(v){
-companyFilter.innerHTML+=`<option>${v}</option>`;
-}
-});
-
-batches.forEach(v=>{
-if(v){
-batchFilter.innerHTML+=`<option>${v}</option>`;
-}
-});
-
+body{
+    background:#111;
+    color:white;
+    font-family:Arial;
+    text-align:center;
 }
 
-function renderTable(data){
+h1{
+    color:gold;
+}
 
-if(data.length==0) return;
+table{
+    width:90%;
+    margin:auto;
+    border-collapse:collapse;
+}
 
-let headers=Object.keys(data[0]);
+th{
+    background:#ff9800;
+    padding:12px;
+}
 
-let thead="<tr>";
+td{
+    padding:10px;
+    border-bottom:1px solid #444;
+}
+
+tr:nth-child(even){
+    background:#222;
+}
+
+.eliminated{
+    color:red;
+    font-weight:bold;
+}
+
+.safe{
+    color:#00ff66;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>RUMMY SCORE BOARD</h1>
+
+<table id="scoreTable">
+
+<thead>
+<tr id="headerRow">
+</tr>
+</thead>
+
+<tbody id="tableBody">
+</tbody>
+
+</table>
+
+<script>
+
+const sheetURL="YOUR_CSV_LINK_HERE";
+
+fetch(sheetURL)
+
+.then(response=>response.text())
+
+.then(data=>{
+
+const rows=data.trim().split("\n")
+.map(r=>r.split(","));
+
+const headers=rows[0];
+
+let headHTML="";
 
 headers.forEach(h=>{
-thead+=`<th>${h}</th>`;
-});
 
-thead+="</tr>";
-
-document.querySelector("#dataTable thead").innerHTML=thead;
-
-let rows="";
-
-data.forEach(row=>{
-
-rows+="<tr>";
-
-headers.forEach(h=>{
-rows+=`<td>${row[h]||''}</td>`;
-});
-
-rows+="</tr>";
+headHTML+=`<th>${h}</th>`;
 
 });
 
-document.querySelector("#dataTable tbody").innerHTML=rows;
-}
+headHTML+=`<th>Status</th>`;
 
-function updateCards(data){
+document.getElementById("headerRow").innerHTML=headHTML;
 
-document.getElementById("totalStudents").innerText=data.length;
+let bodyHTML="";
 
-document.getElementById("placedStudents").innerText=data.filter(
-x=>x.Company && x.Company!=""
-).length;
+for(let i=1;i<rows.length;i++){
 
-let companies=[...new Set(data.map(x=>x.Company).filter(Boolean))];
+let row=rows[i];
 
-document.getElementById("companies").innerText=companies.length;
+let total=parseInt(row[row.length-1]);
 
-let maxPackage=Math.max(
-...data.map(x=>parseFloat(x["Salary package"])||0)
-);
+let status;
 
-document.getElementById("highestPackage").innerText=maxPackage;
-}
+if(total>=200){
 
-function applyFilters(){
+status='<span class="eliminated">ELIMINATED</span>';
 
-let search=document.getElementById("search").value.toLowerCase();
+}else{
 
-let branch=document.getElementById("branchFilter").value;
-
-let company=document.getElementById("companyFilter").value;
-
-let batch=document.getElementById("batchFilter").value;
-
-let filtered=allData.filter(row=>{
-
-let matchSearch=
-JSON.stringify(row).toLowerCase().includes(search);
-
-let matchBranch=
-!branch || row.Branch==branch;
-
-let matchCompany=
-!company || row.Company==company;
-
-let matchBatch=
-!batch || row.Batch==batch;
-
-return matchSearch &&
-matchBranch &&
-matchCompany &&
-matchBatch;
-
-});
-
-renderTable(filtered);
-updateCards(filtered);
+status='<span class="safe">PLAYING</span>';
 
 }
 
-search.addEventListener("input",applyFilters);
-branchFilter.addEventListener("change",applyFilters);
-companyFilter.addEventListener("change",applyFilters);
-batchFilter.addEventListener("change",applyFilters);
+bodyHTML+="<tr>";
+
+row.forEach(cell=>{
+
+bodyHTML+=`<td>${cell}</td>`;
+
+});
+
+bodyHTML+=`<td>${status}</td>`;
+
+bodyHTML+="</tr>";
+
+}
+
+document.getElementById("tableBody").innerHTML=bodyHTML;
+
+})
+
+.catch(err=>{
+
+console.log(err);
+
+});
 
 </script>
 
