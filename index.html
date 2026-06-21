@@ -1,12 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Rummy Score</title>
+
+<style>
+
+body{
+
+font-family:Arial;
+
+text-align:center;
+
+background:#f5f5f5;
+
+}
+
+table{
+
+margin:auto;
+
+border-collapse:collapse;
+
+background:white;
+
+}
+
+th,td{
+
+border:1px solid black;
+
+padding:12px;
+
+min-width:100px;
+
+text-align:center;
+
+}
+
+th{
+
+background:yellow;
+
+}
+
+.total{
+
+background:yellow;
+
+font-size:32px;
+
+font-weight:bold;
+
+}
+
+.red{
+
+background:red;
+
+color:white;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Rummy Score</h1>
+
+<div id="table"></div>
+
 <script>
 
 const csvUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vSDqXx9kHrTNf-SQLWwgLO4igXPZIGzuXkiFKIyHBPUe9EFsCfrVWvVZCupxEzCWtnSeVDBlUEGytOe/pub?output=csv";
 
 fetch(csvUrl)
+
 .then(res=>res.text())
+
 .then(csv=>{
 
-const rows=csv.trim().split("\n").map(r=>r.split(","));
+const rows=csv.trim().split("\n")
+
+.map(r=>r.split(","));
 
 let html="<table>";
 
@@ -18,63 +99,72 @@ for(let j=0;j<rows[i].length;j++){
 
 let value=rows[i][j].trim();
 
-if(i===0){
+if(i==0){
 
 let score=parseInt(value)||0;
 
 if(score>=200){
 
 html+=`
-<td style="
-background:red;
-color:white;
-font-size:30px;
-font-weight:bold;
-">
+
+<td class="total red">
+
 ${score}
+
 <br>
+
 ELIMINATED
+
 </td>
+
 `;
 
-}else{
+}
+
+else{
 
 html+=`
-<td style="
-background:yellow;
-font-size:30px;
-font-weight:bold;
-">
+
+<td class="total">
+
 ${score}
+
 </td>
+
 `;
 
 }
 
 }
 
-else if(i===1){
+else if(i==1){
 
 let score=parseInt(rows[0][j])||0;
 
 if(score>=200){
 
 html+=`
-<th style="
-background:red;
-color:white;
-font-weight:bold;
-">
+
+<th class="red">
+
 ${value}
+
 </th>
+
 `;
 
-}else{
+}
+
+else{
 
 html+=`
-<th style="background:yellow">
+
+<th>
+
 ${value}
+
 </th>
+
 `;
 
 }
@@ -83,7 +173,15 @@ ${value}
 
 else{
 
-html+=`<td>${value}</td>`;
+html+=`
+
+<td>
+
+${value}
+
+</td>
+
+`;
 
 }
 
@@ -100,3 +198,7 @@ document.getElementById("table").innerHTML=html;
 });
 
 </script>
+
+</body>
+
+</html>
