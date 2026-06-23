@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <meta charset="UTF-8">
+
 <title>Jagadeesh Rummy Score</title>
 
 <style>
@@ -29,36 +32,81 @@ text-align:center;
 }
 
 .score{
+
 background:yellow;
 font-size:28px;
 font-weight:bold;
+
 }
 
 .eliminated{
+
 background:red;
 color:white;
 font-size:28px;
 font-weight:bold;
+
 }
 
 .name{
+
 background:yellow;
 font-weight:bold;
+
 }
 
 .name-red{
+
 background:red;
 color:white;
 font-weight:bold;
+
+}
+
+.winner{
+
+background:#00c853;
+color:white;
+font-weight:bold;
+
+}
+
+.winner img{
+
+width:120px;
+height:120px;
+border-radius:50%;
+border:5px solid gold;
+
+animation:zoom 1s infinite alternate;
+
 }
 
 img{
+
 width:80px;
 height:80px;
 border-radius:50%;
 object-fit:cover;
 border:3px solid white;
 margin-bottom:10px;
+
+}
+
+@keyframes zoom{
+
+from{
+
+transform:scale(1);
+
+}
+
+to{
+
+transform:scale(1.1);
+
+}
+
 }
 
 </style>
@@ -69,12 +117,17 @@ margin-bottom:10px;
 
 <h1>Jagadeesh Rummy Score</h1>
 
+<audio id="winSound">
+
+<source src="https://www.soundjay.com/human/applause-8.mp3" type="audio/mpeg">
+
+</audio>
+
 <div id="table"></div>
 
 <script>
 
-const csvUrl =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vSDqXx9kHrTNf-SQLWwgLO4igXPZIGzuXkiFKIyHBPUe9EFsCfrVWvVZCupxEzCWtnSeVDBlUEGytOe/pub?output=csv";
+const csvUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vSDqXx9kHrTNf-SQLWwgLO4igXPZIGzuXkiFKIyHBPUe9EFsCfrVWvVZCupxEzCWtnSeVDBlUEGytOe/pub?output=csv";
 
 const photos=[
 
@@ -98,6 +151,18 @@ fetch(csvUrl)
 
 const rows=csv.trim().split("\n").map(r=>r.split(","));
 
+let scores=[];
+
+for(let i=0;i<rows[0].length;i++){
+
+scores.push(parseInt(rows[0][i])||0);
+
+}
+
+let active=scores.filter(x=>x<201);
+
+let winner=Math.min(...active);
+
 let html="<table>";
 
 for(let i=0;i<rows.length;i++){
@@ -108,11 +173,29 @@ for(let j=0;j<rows[i].length;j++){
 
 let value=rows[i][j].trim();
 
+let score=parseInt(rows[0][j])||0;
+
 if(i===0){
 
-let score=parseInt(value)||0;
+if(score===winner){
 
-if(score>=201){
+html+=`
+
+<td class="winner">
+
+🏆
+
+<br>
+
+${score}
+
+</td>
+
+`;
+
+}
+
+else if(score>=201){
 
 html+=`
 
@@ -128,7 +211,9 @@ ELIMINATED
 
 `;
 
-}else{
+}
+
+else{
 
 html+=`
 
@@ -146,9 +231,39 @@ ${score}
 
 else if(i===1){
 
-let score=parseInt(rows[0][j])||0;
+if(score===winner){
 
-if(score>=201){
+setTimeout(()=>{
+
+document.getElementById("winSound").play();
+
+},1000);
+
+html+=`
+
+<th class="winner">
+
+🏆 CONGRATULATIONS 🏆
+
+<br><br>
+
+<img src="${photos[j]}">
+
+<br>
+
+${value}
+
+<br>
+
+WINNER
+
+</th>
+
+`;
+
+}
+
+else if(score>=201){
 
 html+=`
 
