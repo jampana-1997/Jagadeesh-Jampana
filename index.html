@@ -2,48 +2,81 @@
 <html>
 <head>
 <title>Inside Outside Game</title>
+
 <style>
-body { font-family: Arial; text-align:center; background:#222; color:white; }
-.card {
-  font-size:80px;
-  margin:20px;
+body{
+  background:#111;
+  color:white;
+  font-family:Arial;
+  text-align:center;
 }
-button {
-  padding:10px 20px;
+
+h1{ margin-top:20px; }
+
+.big-card{
+  font-size:120px;
+  margin:40px auto;
+  background:#222;
+  width:200px;
+  height:260px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-radius:20px;
+  box-shadow:0 0 20px rgba(255,255,255,0.2);
+}
+
+button{
+  padding:12px 25px;
   margin:10px;
   font-size:18px;
   cursor:pointer;
+  border:none;
+  border-radius:8px;
+}
+
+.inside{ background:#4caf50; color:white; }
+.outside{ background:#f44336; color:white; }
+
+#result{
+  margin-top:20px;
+  font-size:22px;
 }
 </style>
+
 </head>
+
 <body>
 
-<h1>🃏 Inside vs Outside Game</h1>
+<h1>🃏 Inside vs Outside</h1>
 
-<div class="card" id="card">❓</div>
+<div class="big-card" id="card">❓</div>
 
-<button onclick="guess('INSIDE')">INSIDE</button>
-<button onclick="guess('OUTSIDE')">OUTSIDE</button>
+<button class="inside" onclick="guess('INSIDE')">INSIDE</button>
+<button class="outside" onclick="guess('OUTSIDE')">OUTSIDE</button>
 
 <h2 id="result">Guess the card!</h2>
 
 <script>
+
 let values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 
 let card = "";
+
+// 👉 define rules
+function isInside(v){
+  let index = values.indexOf(v) + 1;
+  return index >= 4 && index <= 10;   // 4 to 10 = INSIDE
+}
 
 function drawCard(){
   card = values[Math.floor(Math.random()*values.length)];
   document.getElementById("card").innerText = card;
 }
 
-function isInside(v){
-  let num = values.indexOf(v) + 1;
-  return num >= 4 && num <= 10;
-}
-
 function guess(choice){
-  drawCard();
+
+  drawCard(); // show big bottom card
 
   let inside = isInside(card);
 
@@ -57,6 +90,7 @@ function guess(choice){
     document.getElementById("result").innerText = "😢 You LOSE!";
   }
 }
+
 </script>
 
 </body>
