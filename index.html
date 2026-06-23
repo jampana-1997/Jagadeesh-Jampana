@@ -1,96 +1,104 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Inside Outside Game</title>
+  <title>Card Guess Game</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial;
+      background: #111;
+      color: white;
+    }
 
-<style>
-body{
-  background:#111;
-  color:white;
-  font-family:Arial;
-  text-align:center;
-}
+    .card {
+      width: 120px;
+      height: 160px;
+      margin: 50px auto;
+      perspective: 1000px;
+    }
 
-h1{ margin-top:20px; }
+    .inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transition: transform 0.8s;
+      transform-style: preserve-3d;
+    }
 
-.big-card{
-  font-size:120px;
-  margin:40px auto;
-  background:#222;
-  width:200px;
-  height:260px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  border-radius:20px;
-  box-shadow:0 0 20px rgba(255,255,255,0.2);
-}
+    .flipped {
+      transform: rotateY(180deg);
+    }
 
-button{
-  padding:12px 25px;
-  margin:10px;
-  font-size:18px;
-  cursor:pointer;
-  border:none;
-  border-radius:8px;
-}
+    .front, .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 30px;
+    }
 
-.inside{ background:#4caf50; color:white; }
-.outside{ background:#f44336; color:white; }
+    .front {
+      background: white;
+      color: black;
+    }
 
-#result{
-  margin-top:20px;
-  font-size:22px;
-}
-</style>
+    .back {
+      background: red;
+      transform: rotateY(180deg);
+    }
 
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 18px;
+    }
+  </style>
 </head>
-
 <body>
 
-<h1>🃏 Inside vs Outside</h1>
+<h2>🃏 Card Guess Game</h2>
 
-<div class="big-card" id="card">❓</div>
+<div class="card">
+  <div class="inner" id="card">
+    <div class="front" id="front">?</div>
+    <div class="back" id="back">5</div>
+  </div>
+</div>
 
-<button class="inside" onclick="guess('INSIDE')">INSIDE</button>
-<button class="outside" onclick="guess('OUTSIDE')">OUTSIDE</button>
+<button onclick="showCard()">Show Card</button>
+<button onclick="guess('inside')">Inside</button>
+<button onclick="guess('outside')">Outside</button>
 
-<h2 id="result">Guess the card!</h2>
+<h3 id="result"></h3>
 
 <script>
+let number = Math.floor(Math.random() * 10) + 1;
 
-let values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-
-let card = "";
-
-// 👉 define rules
-function isInside(v){
-  let index = values.indexOf(v) + 1;
-  return index >= 4 && index <= 10;   // 4 to 10 = INSIDE
+function showCard() {
+  document.getElementById("back").innerText = number;
+  document.getElementById("card").classList.add("flipped");
 }
 
-function drawCard(){
-  card = values[Math.floor(Math.random()*values.length)];
-  document.getElementById("card").innerText = card;
+function guess(type) {
+  // simple logic example
+  if (number <= 5 && type === "inside") {
+    document.getElementById("result").innerText = "🎉 Correct Guess!";
+  } else if (number > 5 && type === "outside") {
+    document.getElementById("result").innerText = "🎉 Correct Guess!";
+  } else {
+    document.getElementById("result").innerText = "❌ Wrong Guess!";
+  }
+
+  // reset
+  setTimeout(() => {
+    document.getElementById("card").classList.remove("flipped");
+    number = Math.floor(Math.random() * 10) + 1;
+  }, 1500);
 }
-
-function guess(choice){
-
-  drawCard(); // show big bottom card
-
-  let inside = isInside(card);
-
-  if(choice === "INSIDE" && inside){
-    document.getElementById("result").innerText = "🎉 You WIN! (Inside)";
-  }
-  else if(choice === "OUTSIDE" && !inside){
-    document.getElementById("result").innerText = "🎉 You WIN! (Outside)";
-  }
-  else{
-    document.getElementById("result").innerText = "😢 You LOSE!";
-  }
-}
-
 </script>
 
 </body>
