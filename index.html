@@ -1,30 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Indian Rummy</title>
-<style>
-body { font-family: Arial; background:#0b6623; color:white; text-align:center; }
-.card { display:inline-block; padding:10px; margin:5px; background:white; color:black; border-radius:6px; }
-button { padding:10px; margin:5px; cursor:pointer; }
-#deck { margin-top:20px; }
-</style>
-</head>
-<body>
-
-<h1>🃏 Indian Rummy (Simple)</h1>
-
-<h3>Your Cards</h3>
-<div id="player"></div>
-
-<h3>Computer Cards</h3>
-<div id="cpu"></div>
-
-<button onclick="drawCard()">Draw Card</button>
-<button onclick="discard()">Discard Random</button>
-<button onclick="checkWin()">Check Win</button>
-
-<h3 id="status"></h3>
-
 <script>
 let suits = ["♠","♥","♦","♣"];
 let values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
@@ -32,6 +5,10 @@ let values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 let deck = [];
 let player = [];
 let cpu = [];
+
+let playerScore = 0;
+let cpuScore = 0;
+let roundOver = false;
 
 function createDeck(){
   deck = [];
@@ -46,6 +23,7 @@ function createDeck(){
 function deal(){
   player = deck.splice(0,13);
   cpu = deck.splice(0,13);
+  roundOver = false;
   render();
 }
 
@@ -54,31 +32,65 @@ function render(){
     player.map(c=>`<div class="card">${c}</div>`).join("");
 
   document.getElementById("cpu").innerHTML =
-    cpu.map(c=>`<div class="card">🂠</div>`).join("");
+    cpu.map(()=>`<div class="card">🂠</div>`).join("");
+
+  document.getElementById("status").innerHTML =
+    `You: ${playerScore} | CPU: ${cpuScore}`;
 }
 
 function drawCard(){
+  if(roundOver) return;
   if(deck.length===0) return;
   player.push(deck.pop());
   render();
 }
 
 function discard(){
+  if(roundOver) return;
   player.splice(Math.floor(Math.random()*player.length),1);
   render();
 }
 
+// Simple win check (demo logic)
 function checkWin(){
-  if(player.length === 0){
-    document.getElementById("status").innerText = "🎉 You Win!";
+
+  if(roundOver) return;
+
+  // fake win condition (you can replace with real rummy logic later)
+  let playerWin = Math.random() > 0.5;
+
+  if(playerWin){
+    cpuScore += 20;
+    document.getElementById("status").innerHTML = "🎉 You Won the Round!";
   } else {
-    document.getElementById("status").innerText = "Not a valid win yet 😄";
+    playerScore += 20;
+    document.getElementById("status").innerHTML = "😢 CPU Won the Round!";
+  }
+
+  roundOver = true;
+
+  checkElimination();
+
+  setTimeout(()=>{
+    if(playerScore < 200 && cpuScore < 200){
+      createDeck();
+      deal();
+    }
+  }, 1500);
+}
+
+function checkElimination(){
+  if(playerScore >= 200){
+    document.getElementById("status").innerHTML =
+      "💀 You ELIMINATED! CPU Wins Tournament";
+  }
+
+  if(cpuScore >= 200){
+    document.getElementById("status").innerHTML =
+      "🏆 You WIN Tournament! CPU Eliminated";
   }
 }
 
 createDeck();
 deal();
 </script>
-
-</body>
-</html>
