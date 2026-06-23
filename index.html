@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 
 <meta charset="UTF-8">
-
 <title>Jagadeesh Rummy Score</title>
 
 <style>
@@ -25,16 +23,23 @@ border-collapse:collapse;
 }
 
 td,th{
+
 border:1px solid #333;
+
 padding:10px;
+
 min-width:120px;
+
 text-align:center;
+
 }
 
 .score{
 
 background:yellow;
+
 font-size:28px;
+
 font-weight:bold;
 
 }
@@ -42,23 +47,11 @@ font-weight:bold;
 .eliminated{
 
 background:red;
+
 color:white;
+
 font-size:28px;
-font-weight:bold;
 
-}
-
-.name{
-
-background:yellow;
-font-weight:bold;
-
-}
-
-.name-red{
-
-background:red;
-color:white;
 font-weight:bold;
 
 }
@@ -66,44 +59,152 @@ font-weight:bold;
 .winner{
 
 background:#00c853;
+
 color:white;
+
+font-size:28px;
+
 font-weight:bold;
 
 }
 
-.winner img{
+.name{
 
-width:120px;
-height:120px;
-border-radius:50%;
-border:5px solid gold;
+background:yellow;
 
-animation:zoom 1s infinite alternate;
+font-weight:bold;
+
+}
+
+.name-red{
+
+background:red;
+
+color:white;
+
+font-weight:bold;
+
+}
+
+.name-green{
+
+background:#00c853;
+
+color:white;
+
+font-weight:bold;
 
 }
 
 img{
 
 width:80px;
+
 height:80px;
+
 border-radius:50%;
+
 object-fit:cover;
+
 border:3px solid white;
+
 margin-bottom:10px;
+
+}
+
+#winnerEffect{
+
+display:none;
+
+position:fixed;
+
+top:0;
+
+left:0;
+
+width:100%;
+
+height:100%;
+
+background:rgba(0,0,0,.7);
+
+z-index:9999;
+
+}
+
+#winnerBox{
+
+position:absolute;
+
+top:50%;
+
+left:50%;
+
+transform:translate(-50%,-50%);
+
+}
+
+#winnerBox img{
+
+width:220px;
+
+height:220px;
+
+border-radius:50%;
+
+border:10px solid gold;
+
+box-shadow:0 0 50px yellow;
 
 }
 
 @keyframes zoom{
 
-from{
+0%{transform:scale(1)}
 
-transform:scale(1);
+50%{transform:scale(1.15)}
+
+100%{transform:scale(1)}
 
 }
 
-to{
+.big{
 
-transform:scale(1.1);
+animation:zoom 1s infinite;
+
+color:#FFD700;
+
+font-size:60px;
+
+}
+
+.confetti{
+
+position:fixed;
+
+font-size:35px;
+
+animation:fall 4s linear infinite;
+
+z-index:99999;
+
+}
+
+@keyframes fall{
+
+0%{
+
+top:-50px;
+
+transform:rotate(0deg);
+
+}
+
+100%{
+
+top:100vh;
+
+transform:rotate(720deg);
 
 }
 
@@ -117,13 +218,31 @@ transform:scale(1.1);
 
 <h1>Jagadeesh Rummy Score</h1>
 
-<audio id="winSound">
+<div id="table"></div>
+
+<div id="winnerEffect">
+
+<div id="winnerBox">
+
+<h1 class="big">🏆 WINNER 🏆</h1>
+
+<div id="winnerPhoto"></div>
+
+<h2 style="color:white">
+
+🎉 CONGRATULATIONS 🎉
+
+</h2>
+
+</div>
+
+</div>
+
+<audio id="winnerSound">
 
 <source src="https://www.soundjay.com/human/applause-8.mp3" type="audio/mpeg">
 
 </audio>
-
-<div id="table"></div>
 
 <script>
 
@@ -151,19 +270,25 @@ fetch(csvUrl)
 
 const rows=csv.trim().split("\n").map(r=>r.split(","));
 
-let scores=[];
+let html="<table>";
+
+let min=99999;
+
+let winner=0;
 
 for(let i=0;i<rows[0].length;i++){
 
-scores.push(parseInt(rows[0][i])||0);
+let s=parseInt(rows[0][i])||0;
+
+if(s<201 && s<min){
+
+min=s;
+
+winner=i;
 
 }
 
-let active=scores.filter(x=>x<201);
-
-let winner=Math.min(...active);
-
-let html="<table>";
+}
 
 for(let i=0;i<rows.length;i++){
 
@@ -177,7 +302,7 @@ let score=parseInt(rows[0][j])||0;
 
 if(i===0){
 
-if(score===winner){
+if(j===winner){
 
 html+=`
 
@@ -231,21 +356,11 @@ ${score}
 
 else if(i===1){
 
-if(score===winner){
-
-setTimeout(()=>{
-
-document.getElementById("winSound").play();
-
-},1000);
+if(j===winner){
 
 html+=`
 
-<th class="winner">
-
-🏆 CONGRATULATIONS 🏆
-
-<br><br>
+<th class="name-green">
 
 <img src="${photos[j]}">
 
@@ -307,15 +422,7 @@ ${value}
 
 else{
 
-html+=`
-
-<td>
-
-${value}
-
-</td>
-
-`;
+html+=`<td>${value}</td>`;
 
 }
 
@@ -329,7 +436,52 @@ html+="</table>";
 
 document.getElementById("table").innerHTML=html;
 
+showWinner(
+
+rows[1][winner],
+
+photos[winner]
+
+);
+
 });
+
+
+function showWinner(name,photo){
+
+document.getElementById("winnerEffect").style.display="block";
+
+document.getElementById("winnerPhoto").innerHTML=`
+
+<img src="${photo}">
+
+<h1 style="color:white">
+
+${name}
+
+</h1>
+
+`;
+
+document.getElementById("winnerSound").play();
+
+for(let i=0;i<120;i++){
+
+let c=document.createElement("div");
+
+c.className="confetti";
+
+c.innerHTML=["🎉","🎊","✨","🏆"][Math.floor(Math.random()*4)];
+
+c.style.left=Math.random()*100+"%";
+
+c.style.animationDelay=Math.random()*3+"s";
+
+document.body.appendChild(c);
+
+}
+
+}
 
 </script>
 
