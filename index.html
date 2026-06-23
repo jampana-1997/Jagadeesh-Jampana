@@ -1,84 +1,615 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Full Card Game</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #111;
-      color: white;
-      text-align: center;
-    }
 
-    h2 {
-      margin-top: 20px;
-    }
+<meta charset="UTF-8">
+<title>Jagadeesh Rummy Score</title>
 
-    .card {
-      width: 90vw;
-      height: 60vh;
-      margin: 20px auto;
-      background: white;
-      color: black;
-      font-size: 120px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(255,255,255,0.4);
-    }
+<style>
 
-    .buttons {
-      margin-top: 20px;
-    }
+body{
+font-family:Arial;
+text-align:center;
+background:#f5f5f5;
+}
 
-    button {
-      padding: 15px 25px;
-      margin: 10px;
-      font-size: 20px;
-      border-radius: 10px;
-    }
+h1{
+font-size:50px;
+}
 
-    #result {
-      font-size: 28px;
-      margin-top: 20px;
-    }
-  </style>
+table{
+margin:auto;
+border-collapse:collapse;
+}
+
+td,th{
+
+border:1px solid #333;
+
+padding:10px;
+
+min-width:120px;
+
+text-align:center;
+
+}
+
+.score{
+
+background:yellow;
+
+font-size:28px;
+
+font-weight:bold;
+
+}
+
+.eliminated{
+
+background:red;
+
+color:white;
+
+font-size:28px;
+
+font-weight:bold;
+
+}
+
+.winner{
+
+background:#00c853;
+
+color:white;
+
+font-size:28px;
+
+font-weight:bold;
+
+}
+
+.name{
+
+background:yellow;
+
+font-weight:bold;
+
+}
+
+.name-red{
+
+background:red;
+
+color:white;
+
+font-weight:bold;
+
+}
+
+.name-green{
+
+background:#00c853;
+
+color:white;
+
+font-weight:bold;
+
+}
+
+img{
+
+width:80px;
+
+height:80px;
+
+border-radius:50%;
+
+object-fit:cover;
+
+border:3px solid white;
+
+margin-bottom:10px;
+
+}
+
+#winnerEffect{
+
+display:none;
+
+position:fixed;
+
+top:0;
+
+left:0;
+
+width:100%;
+
+height:100%;
+
+background:rgba(0,0,0,.7);
+
+z-index:9999;
+
+}
+
+#winnerBox{
+
+position:absolute;
+
+top:50%;
+
+left:50%;
+
+transform:translate(-50%,-50%);
+
+}
+
+#winnerBox img{
+
+width:220px;
+
+height:220px;
+
+border-radius:50%;
+
+border:10px solid gold;
+
+box-shadow:0 0 50px yellow;
+
+}
+
+@keyframes zoom{
+
+0%{transform:scale(1)}
+
+50%{transform:scale(1.15)}
+
+100%{transform:scale(1)}
+
+}
+
+.big{
+
+animation:zoom 1s infinite;
+
+color:#FFD700;
+
+font-size:60px;
+
+}
+
+.confetti{
+
+position:fixed;
+
+font-size:35px;
+
+animation:fall 4s linear infinite;
+
+z-index:99999;
+
+}
+
+@keyframes fall{
+
+0%{
+
+top:-50px;
+
+transform:rotate(0deg);
+
+}
+
+100%{
+
+top:100vh;
+
+transform:rotate(720deg);
+
+}
+
+}
+
+</style>
+
 </head>
+
 <body>
 
-<h2>🃏 Card Guess Game</h2>
+<h1>Jagadeesh Rummy Score</h1>
 
-<div class="card" id="card">5</div>
+<div id="table"></div>
 
-<div class="buttons">
-  <button onclick="newCard()">New Card</button>
-  <button onclick="guess('inside')">Inside</button>
-  <button onclick="guess('outside')">Outside</button>
+<div id="winnerEffect">
+
+<div id="winnerBox">
+
+<h1 class="big">🏆 WINNER 🏆</h1>
+
+<div id="winnerPhoto"></div>
+
+<h2 style="color:white">
+
+🎉 CONGRATULATIONS 🎉
+
+</h2>
+
 </div>
 
-<h3 id="result"></h3>
+</div>
+
+<audio id="winnerSound">
+
+<source src="https://www.soundjay.com/human/applause-8.mp3" type="audio/mpeg">
+
+</audio>
 
 <script>
-let number = 5;
 
-function newCard() {
-  number = Math.floor(Math.random() * 10) + 1;
-  document.getElementById("card").innerText = number;
-  document.getElementById("result").innerText = "";
+const csvUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vSDqXx9kHrTNf-SQLWwgLO4igXPZIGzuXkiFKIyHBPUe9EFsCfrVWvVZCupxEzCWtnSeVDBlUEGytOe/pub?output=csv";
+
+const photos=[
+
+"https://drive.google.com/thumbnail?id=1RpkTUrawmFILNuMIGAKAgYRIRvOeNLkC&sz=w300",
+
+"https://drive.google.com/thumbnail?id=1RbW4YresUsYVsbOc2hXzGJ4gTl6WyCQu&sz=w300",
+
+"https://drive.google.com/thumbnail?id=1nnyC2ve1Pm2VkuLEWSUtXr0p1izBtrIz&sz=w300",
+
+"https://drive.google.com/thumbnail?id=1lg-XQFaHFAlqcN1UVDGcwCOlvvTx08E0&sz=w300",
+
+"https://drive.google.com/thumbnail?id=1LqEXOeLG0Q1XiRRRFNC9uUCY2kKCsWPa&sz=w300"
+
+];
+
+fetch(csvUrl)
+
+.then(res=>res.text())
+
+.then(csv=>{
+
+const rows=csv.trim().split("\n").map(r=>r.split(","));
+
+let html="<table>";
+
+let min=99999;
+
+let winner=0;
+
+for(let i=0;i<rows[0].length;i++){
+
+let s=parseInt(rows[0][i])||0;
+
+if(s<201 && s<min){
+
+min=s;
+
+winner=i;
+
 }
 
-function guess(type) {
-  if (number <= 5 && type === "inside") {
-    document.getElementById("result").innerText = "🎉 Correct!";
-  } else if (number > 5 && type === "outside") {
-    document.getElementById("result").innerText = "🎉 Correct!";
-  } else {
-    document.getElementById("result").innerText = "❌ Wrong!";
-  }
 }
+
+for(let i=0;i<rows.length;i++){
+
+html+="<tr>";
+
+for(let j=0;j<rows[i].length;j++){
+
+let value=rows[i][j].trim();
+
+let score=parseInt(rows[0][j])||0;
+
+if(i===0){
+
+if(j===winner){
+
+html+=`
+
+<td class="winner">
+
+🏆
+
+<br>
+
+${score}
+
+</td>
+
+`;
+
+}
+
+else if(score>=201){
+
+html+=`
+
+<td class="eliminated">
+
+${score}
+
+<br>
+
+ELIMINATED
+
+</td>
+
+`;
+
+}
+
+else{
+
+html+=`
+
+<td class="score">
+
+${score}
+
+</td>
+
+`;
+
+}
+
+}
+
+else if(i===1){
+
+if(j===winner){
+
+html+=`
+
+<th class="name-green">
+
+<img src="${photos[j]}">
+
+<br>
+
+${value}
+
+<br>
+
+WINNER
+
+</th>
+
+`;
+
+}
+
+else if(score>=201){
+
+html+=`
+
+<th class="name-red">
+
+<img src="${photos[j]}">
+
+<br>
+
+${value}
+
+<br>
+
+ELIMINATED
+
+</th>
+
+`;
+
+}
+
+else{
+
+html+=`
+
+<th class="name">
+
+<img src="${photos[j]}">
+
+<br>
+
+${value}
+
+</th>
+
+`;
+
+}
+
+}
+
+else{
+
+html+=`<td>${value}</td>`;
+
+}
+
+}
+
+html+="</tr>";
+
+}
+
+html+="</table>";
+
+document.getElementById("table").innerHTML=html;
+
+showWinner(
+
+rows[1][winner],
+
+photos[winner]
+
+);
+
+});
+
+
+function showWinner(name,photo){
+
+document.getElementById("winnerEffect").style.display="block";
+
+document.getElementById("winnerPhoto").innerHTML=`
+
+<img src="${photo}">
+
+<h1 style="color:white">
+
+${name}
+
+</h1>
+
+`;
+
+document.getElementById("winnerSound").play();
+
+for(let i=0;i<120;i++){
+
+let c=document.createElement("div");
+
+c.className="confetti";
+
+c.innerHTML=["🎉","🎊","✨","🏆"][Math.floor(Math.random()*4)];
+
+c.style.left=Math.random()*100+"%";
+
+c.style.animationDelay=Math.random()*3+"s";
+
+document.body.appendChild(c);
+
+}
+
+}
+
+</script>
+<button id="winnerBtn"
+style="
+position:fixed;
+bottom:20px;
+right:20px;
+padding:15px 25px;
+font-size:20px;
+background:#ff9800;
+color:white;
+border:none;
+border-radius:50px;
+cursor:pointer;
+box-shadow:0 0 15px rgba(0,0,0,.3);
+z-index:99999;
+">
+🔊 Winner Voice
+</button>
+
+<script>
+
+document.getElementById("winnerBtn").addEventListener("click",()=>{
+
+// Voice
+
+let winnerName=document.querySelector(".name-green")
+.innerText
+.replace("WINNER","")
+.trim();
+
+let msg=new SpeechSynthesisUtterance(
+
+"Winner Winner Chicken Dinner. Congratulations " 
++ winnerName
+
+);
+
+msg.lang="en-US";
+
+msg.rate=0.9;
+
+msg.pitch=1;
+
+msg.volume=1;
+
+speechSynthesis.speak(msg);
+
+msg.lang="en-India";
+
+msg.rate=0.9;
+
+msg.pitch=1;
+
+msg.volume=1;
+
+speechSynthesis.speak(msg);
+
+
+// Claps Sound
+
+let audio=new Audio(
+
+"https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"
+
+);
+
+audio.volume=1;
+
+audio.play();
+
+
+// Confetti
+
+for(let i=0;i<150;i++){
+
+let c=document.createElement("div");
+
+c.innerHTML=["🎉","🎊","✨","🏆","⭐"][
+
+Math.floor(Math.random()*5)
+
+];
+
+c.style.position="fixed";
+
+c.style.left=Math.random()*100+"%";
+
+c.style.top="-50px";
+
+c.style.fontSize=(20+Math.random()*30)+"px";
+
+c.style.zIndex="99999";
+
+c.style.animation="fall 4s linear infinite";
+
+document.body.appendChild(c);
+
+}
+
+});
+
+
 </script>
 
+<style>
+
+@keyframes fall{
+
+0%{
+
+transform:translateY(-50px) rotate(0deg);
+
+opacity:1;
+
+}
+
+100%{
+
+transform:translateY(110vh) rotate(720deg);
+
+opacity:0;
+
+}
+
+}
+
+</style>
 </body>
+
 </html>
