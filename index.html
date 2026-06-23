@@ -12,10 +12,13 @@ body{
 font-family:Arial,sans-serif;
 text-align:center;
 background:#f5f5f5;
+margin:0;
+padding:20px;
 }
 
 h1{
-margin:20px;
+font-size:40px;
+margin-bottom:20px;
 }
 
 table{
@@ -25,41 +28,81 @@ background:white;
 }
 
 th,td{
+
 border:1px solid black;
-padding:12px;
-min-width:90px;
+
+padding:10px;
+
+min-width:100px;
+
 text-align:center;
+
 }
 
 .total{
+
 background:yellow;
+
 font-size:32px;
+
 font-weight:bold;
+
 }
 
 .yellow{
+
 background:yellow;
+
 }
 
 .red{
+
 background:red !important;
+
 color:white !important;
+
 font-weight:bold;
+
 }
 
 .green{
+
 background:green !important;
+
 color:white !important;
+
 font-weight:bold;
+
 }
 
 .rank{
+
 display:block;
-font-size:13px;
+
+font-size:14px;
+
 margin-top:5px;
+
+}
+
+.profile{
+
+width:80px;
+
+height:80px;
+
+border-radius:50%;
+
+object-fit:cover;
+
+border:3px solid white;
+
+margin-bottom:8px;
+
 }
 
 </style>
+
 </head>
 
 <body>
@@ -79,21 +122,26 @@ fetch(csvUrl)
 .then(csv=>{
 
 const rows=csv.trim().split("\n")
+
 .map(r=>r.split(","));
 
 const totals=rows[0].map(x=>parseInt(x)||0);
 
-const active=totals.filter(x=>x<201);
+const active=totals.filter(x=>x<200);
 
 const winnerScore=active.length==1 ? active[0] : -1;
 
 const ranks=[...totals]
+
 .map((score,index)=>({score,index}))
+
 .sort((a,b)=>a.score-b.score);
 
 let html="<table>";
 
 for(let i=0;i<rows.length;i++){
+
+if(i==2) continue; // Photo row ని tableలో చూపించదు
 
 html+="<tr>";
 
@@ -105,9 +153,10 @@ if(i==0){
 
 let score=parseInt(value)||0;
 
-if(score>=201){
+if(score>=200){
 
 html+=`
+
 <td class="total red">
 
 ${score}
@@ -117,6 +166,7 @@ ${score}
 ELIMINATED
 
 </td>
+
 `;
 
 }
@@ -124,6 +174,7 @@ ELIMINATED
 else if(score==winnerScore){
 
 html+=`
+
 <td class="total green">
 
 ${score}
@@ -133,6 +184,7 @@ ${score}
 WINNER 🏆
 
 </td>
+
 `;
 
 }
@@ -140,11 +192,13 @@ WINNER 🏆
 else{
 
 html+=`
+
 <td class="total">
 
 ${score}
 
 </td>
+
 `;
 
 }
@@ -157,57 +211,48 @@ let score=totals[j];
 
 let rank=ranks.findIndex(x=>x.index==j)+1;
 
-if(score>=201){
+let photo="";
 
-html+=`
-<th class="red">
+if(rows[2] && rows[2][j])
 
-${value}
+photo=rows[2][j].trim();
 
-<br>
+let cls="yellow";
 
-ELIMINATED
+let status="";
 
-<span class="rank">
+if(score>=200){
 
-Rank ${rank}
+cls="red";
 
-</span>
-
-</th>
-`;
+status="<br>ELIMINATED";
 
 }
 
 else if(score==winnerScore){
 
-html+=`
-<th class="green">
+cls="green";
 
-${value}
+status="<br>🏆 WINNER";
+
+}
+
+html+=`
+
+<th class="${cls}">
+
+${photo?
+
+`<img src="${photo}" class="profile">`
+
+:""}
 
 <br>
 
-WINNER 🏆
-
-<span class="rank">
-
-Rank ${rank}
-
-</span>
-
-</th>
-`;
-
-}
-
-else{
-
-html+=`
-<th class="yellow">
-
 ${value}
 
+${status}
+
 <span class="rank">
 
 Rank ${rank}
@@ -215,9 +260,8 @@ Rank ${rank}
 </span>
 
 </th>
-`;
 
-}
+`;
 
 }
 
