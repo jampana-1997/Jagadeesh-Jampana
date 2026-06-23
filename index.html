@@ -508,11 +508,27 @@ document.getElementById("winnerBtn").addEventListener("click",()=>{
 
 // Voice
 
+let winnerName=document.querySelector(".name-green")
+.innerText
+.replace("WINNER","")
+.trim();
+
 let msg=new SpeechSynthesisUtterance(
 
-"Winner Winner Chicken Dinner. Congratulations!"
+"Winner Winner Chicken Dinner Jai Balayya. Congratulations " 
++ winnerName
 
 );
+
+msg.lang="en-US";
+
+msg.rate=0.9;
+
+msg.pitch=1;
+
+msg.volume=1;
+
+speechSynthesis.speak(msg);
 
 msg.lang="en-US";
 
