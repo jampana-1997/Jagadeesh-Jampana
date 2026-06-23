@@ -1,96 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Teen Patti 2 Player</title>
+<style>
+body { background:#0b6623; color:white; text-align:center; font-family:Arial; }
+.card { display:inline-block; padding:15px; margin:5px; background:white; color:black; border-radius:8px; font-size:20px; }
+button { padding:10px 15px; margin:10px; cursor:pointer; }
+.box { border:2px solid white; margin:10px; padding:10px; border-radius:10px; }
+</style>
+</head>
+<body>
+
+<h1>🃏 Teen Patti - 2 Players</h1>
+
+<div class="box">
+<h2>Player 1</h2>
+<div id="p1"></div>
+</div>
+
+<div class="box">
+<h2>Player 2</h2>
+<div id="p2"></div>
+</div>
+
+<button onclick="deal()">Deal Cards</button>
+
+<h2 id="result"></h2>
+
 <script>
 let suits = ["♠","♥","♦","♣"];
-let values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+let values = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
 
 let deck = [];
-let player = [];
-let cpu = [];
-
-let playerScore = 0;
-let cpuScore = 0;
-let roundOver = false;
+let p1 = [];
+let p2 = [];
 
 function createDeck(){
   deck = [];
   for(let s of suits){
     for(let v of values){
-      deck.push(v + s);
+      deck.push({v, s});
     }
   }
   deck.sort(()=>Math.random()-0.5);
 }
 
+function valueRank(v){
+  return values.indexOf(v);
+}
+
+function score(hand){
+  return hand[0].r + hand[1].r + hand[2].r;
+}
+
 function deal(){
-  player = deck.splice(0,13);
-  cpu = deck.splice(0,13);
-  roundOver = false;
+  createDeck();
+
+  p1 = deck.splice(0,3);
+  p2 = deck.splice(0,3);
+
+  // add rank
+  p1.forEach(c=>c.r = valueRank(c.v));
+  p2.forEach(c=>c.r = valueRank(c.v));
+
   render();
+
+  let s1 = score(p1);
+  let s2 = score(p2);
+
+  if(s1 > s2){
+    document.getElementById("result").innerText = "🏆 Player 1 Wins!";
+  } else if(s2 > s1){
+    document.getElementById("result").innerText = "🏆 Player 2 Wins!";
+  } else {
+    document.getElementById("result").innerText = "🤝 Draw!";
+  }
 }
 
 function render(){
-  document.getElementById("player").innerHTML =
-    player.map(c=>`<div class="card">${c}</div>`).join("");
+  document.getElementById("p1").innerHTML =
+    p1.map(c=>`<div class="card">${c.v}${c.s}</div>`).join("");
 
-  document.getElementById("cpu").innerHTML =
-    cpu.map(()=>`<div class="card">🂠</div>`).join("");
-
-  document.getElementById("status").innerHTML =
-    `You: ${playerScore} | CPU: ${cpuScore}`;
-}
-
-function drawCard(){
-  if(roundOver) return;
-  if(deck.length===0) return;
-  player.push(deck.pop());
-  render();
-}
-
-function discard(){
-  if(roundOver) return;
-  player.splice(Math.floor(Math.random()*player.length),1);
-  render();
-}
-
-// Simple win check (demo logic)
-function checkWin(){
-
-  if(roundOver) return;
-
-  // fake win condition (you can replace with real rummy logic later)
-  let playerWin = Math.random() > 0.5;
-
-  if(playerWin){
-    cpuScore += 20;
-    document.getElementById("status").innerHTML = "🎉 You Won the Round!";
-  } else {
-    playerScore += 20;
-    document.getElementById("status").innerHTML = "😢 CPU Won the Round!";
-  }
-
-  roundOver = true;
-
-  checkElimination();
-
-  setTimeout(()=>{
-    if(playerScore < 200 && cpuScore < 200){
-      createDeck();
-      deal();
-    }
-  }, 1500);
-}
-
-function checkElimination(){
-  if(playerScore >= 200){
-    document.getElementById("status").innerHTML =
-      "💀 You ELIMINATED! CPU Wins Tournament";
-  }
-
-  if(cpuScore >= 200){
-    document.getElementById("status").innerHTML =
-      "🏆 You WIN Tournament! CPU Eliminated";
-  }
+  document.getElementById("p2").innerHTML =
+    p2.map(c=>`<div class="card">${c.v}${c.s}</div>`).join("");
 }
 
 createDeck();
-deal();
 </script>
+
+</body>
+</html>
