@@ -2,103 +2,63 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>Jagadeesh Rummy Score</title>
 
 <style>
 
 body{
-font-family:Arial,sans-serif;
+font-family:Arial;
 text-align:center;
 background:#f5f5f5;
-margin:0;
-padding:20px;
 }
 
 h1{
-font-size:40px;
-margin-bottom:20px;
+font-size:50px;
 }
 
 table{
 margin:auto;
 border-collapse:collapse;
-background:white;
 }
 
-th,td{
-
-border:1px solid black;
-
+td,th{
+border:1px solid #333;
 padding:10px;
-
-min-width:100px;
-
+min-width:120px;
 text-align:center;
-
 }
 
-.total{
-
+.score{
 background:yellow;
-
-font-size:32px;
-
+font-size:28px;
 font-weight:bold;
-
 }
 
-.yellow{
+.eliminated{
+background:red;
+color:white;
+font-size:28px;
+font-weight:bold;
+}
 
+.name{
 background:yellow;
-
-}
-
-.red{
-
-background:red !important;
-
-color:white !important;
-
 font-weight:bold;
-
 }
 
-.green{
-
-background:green !important;
-
-color:white !important;
-
+.name-red{
+background:red;
+color:white;
 font-weight:bold;
-
 }
 
-.rank{
-
-display:block;
-
-font-size:14px;
-
-margin-top:5px;
-
-}
-
-.profile{
-
+img{
 width:80px;
-
 height:80px;
-
 border-radius:50%;
-
 object-fit:cover;
-
 border:3px solid white;
-
-margin-bottom:8px;
-
+margin-bottom:10px;
 }
 
 </style>
@@ -113,7 +73,18 @@ margin-bottom:8px;
 
 <script>
 
-const csvUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vSDqXx9kHrTNf-SQLWwgLO4igXPZIGzuXkiFKIyHBPUe9EFsCfrVWvVZCupxEzCWtnSeVDBlUEGytOe/pub?output=csv";
+const csvUrl =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vSDqXx9kHrTNf-SQLWwgLO4igXPZIGzuXkiFKIyHBPUe9EFsCfrVWvVZCupxEzCWtnSeVDBlUEGytOe/pub?output=csv";
+
+const photos=[
+
+"",
+"https://drive.google.com/thumbnail?id=1RpkTUrawmFILNuMIGAKAgYRIRvOeNLkC&sz=w300",
+"",
+"",
+""
+
+];
 
 fetch(csvUrl)
 
@@ -121,27 +92,11 @@ fetch(csvUrl)
 
 .then(csv=>{
 
-const rows=csv.trim().split("\n")
-
-.map(r=>r.split(","));
-
-const totals=rows[0].map(x=>parseInt(x)||0);
-
-const active=totals.filter(x=>x<200);
-
-const winnerScore=active.length==1 ? active[0] : -1;
-
-const ranks=[...totals]
-
-.map((score,index)=>({score,index}))
-
-.sort((a,b)=>a.score-b.score);
+const rows=csv.trim().split("\n").map(r=>r.split(","));
 
 let html="<table>";
 
 for(let i=0;i<rows.length;i++){
-
-if(i==2) continue; // Photo row ని tableలో చూపించదు
 
 html+="<tr>";
 
@@ -149,7 +104,7 @@ for(let j=0;j<rows[i].length;j++){
 
 let value=rows[i][j].trim();
 
-if(i==0){
+if(i===0){
 
 let score=parseInt(value)||0;
 
@@ -157,7 +112,7 @@ if(score>=200){
 
 html+=`
 
-<td class="total red">
+<td class="eliminated">
 
 ${score}
 
@@ -169,21 +124,43 @@ ELIMINATED
 
 `;
 
-}
-
-else if(score==winnerScore){
+}else{
 
 html+=`
 
-<td class="total green">
+<td class="score">
 
 ${score}
 
+</td>
+
+`;
+
+}
+
+}
+
+else if(i===1){
+
+let score=parseInt(rows[0][j])||0;
+
+if(score>=200){
+
+html+=`
+
+<th class="name-red">
+
+<img src="${photos[j]}">
+
 <br>
 
-WINNER 🏆
+${value}
 
-</td>
+<br>
+
+ELIMINATED
+
+</th>
 
 `;
 
@@ -193,75 +170,19 @@ else{
 
 html+=`
 
-<td class="total">
+<th class="name">
 
-${score}
-
-</td>
-
-`;
-
-}
-
-}
-
-else if(i==1){
-
-let score=totals[j];
-
-let rank=ranks.findIndex(x=>x.index==j)+1;
-
-let photo="";
-
-if(rows[2] && rows[2][j])
-
-photo=rows[2][j].trim();
-
-let cls="yellow";
-
-let status="";
-
-if(score>=200){
-
-cls="red";
-
-status="<br>ELIMINATED";
-
-}
-
-else if(score==winnerScore){
-
-cls="green";
-
-status="<br>🏆 WINNER";
-
-}
-
-html+=`
-
-<th class="${cls}">
-
-${photo?
-
-`<img src="${photo}" class="profile">`
-
-:""}
+<img src="${photos[j]}">
 
 <br>
 
 ${value}
 
-${status}
-
-<span class="rank">
-
-Rank ${rank}
-
-</span>
-
 </th>
 
 `;
+
+}
 
 }
 
@@ -289,15 +210,10 @@ html+="</table>";
 
 document.getElementById("table").innerHTML=html;
 
-})
-
-.catch(err=>{
-
-document.getElementById("table").innerHTML="Error Loading Data";
-
 });
 
 </script>
 
 </body>
+
 </html>
